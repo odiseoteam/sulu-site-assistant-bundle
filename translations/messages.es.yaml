@@ -1,0 +1,53 @@
+odiseo_sulu_site_assistant:
+    widget:
+        launcher: 'Preguntanos'
+        dialog_label: 'Asistente del sitio'
+        title: 'Asistente'
+        close: 'Cerrar'
+        expand: 'Ampliar'
+        collapse: 'Reducir'
+        send: 'Enviar'
+        welcome:
+            title: '¿En qué te ayudamos?'
+            body: 'Preguntá sobre lo que hacemos, cómo trabajamos o cualquier cosa de este sitio. Las respuestas salen de nuestras propias páginas.'
+        input:
+            label: 'Tu mensaje'
+            placeholder: 'Escribí tu pregunta'
+            placeholder_busy: 'Pensando…'
+        status:
+            thinking: 'Pensando'
+    card:
+        recommended: 'Recomendado'
+        pros: 'A favor'
+        cons: 'En contra'
+        best_for: 'Ideal para'
+        retry: 'Reintentar'
+        carousel:
+            prev: 'Anteriores'
+            next: 'Más'
+        comparison:
+            compared_on: 'Comparado en'
+        handoff:
+            summary: 'Lo que entendimos'
+            route:
+                page: 'Contactanos'
+                email: 'Escribinos'
+                booking: 'Agendá una llamada'
+    tool:
+        search_content: 'Buscando en el sitio…'
+        get_content: 'Leyendo la página…'
+        recall_memories: 'Recordando lo que me contaste…'
+        save_memory: 'Guardando eso para la próxima…'
+        load_skill: 'Cargando…'
+        presenting: 'Preparando la respuesta…'
+    error:
+        js:
+            connection_lost: 'Se perdió la conexión. Probá de nuevo.'
+            unavailable: 'El asistente no está disponible en este momento.'
+        http:
+            too_many_sessions: 'Demasiadas conversaciones desde esta conexión. Probá más tarde.'
+            too_many_messages: 'Demasiados mensajes en poco tiempo. Probá de nuevo en un rato.'
+            empty_message: 'El mensaje está vacío.'
+            not_configured: 'El asistente todavía no está configurado.'
+            turn_failed: 'Algo falló de nuestro lado. Probá de nuevo en un momento.'
+            budget_exceeded: 'El asistente llegó a su límite por ahora. Escribinos directamente.'

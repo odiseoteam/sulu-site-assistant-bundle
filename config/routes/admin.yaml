@@ -1,0 +1,32 @@
+# The admin API behind the "Site assistant" section. Import it under /admin/api.
+odiseo_sulu_site_assistant.get_conversations:
+    path: /site-assistant/conversations.{_format}
+    format: json
+    methods: [GET]
+    controller: odiseo_sulu_site_assistant.admin.conversation_controller::cgetAction
+
+odiseo_sulu_site_assistant.get_conversation:
+    path: /site-assistant/conversations/{id}.{_format}
+    format: json
+    methods: [GET]
+    requirements: { id: '\d+' }
+    controller: odiseo_sulu_site_assistant.admin.conversation_controller::getAction
+
+odiseo_sulu_site_assistant.delete_conversation:
+    path: /site-assistant/conversations/{id}.{_format}
+    format: json
+    methods: [DELETE]
+    requirements: { id: '\d+' }
+    controller: odiseo_sulu_site_assistant.admin.conversation_controller::deleteAction
+
+odiseo_sulu_site_assistant.delete_conversations:
+    path: /site-assistant/conversations.{_format}
+    format: json
+    methods: [DELETE]
+    controller: odiseo_sulu_site_assistant.admin.conversation_controller::cdeleteAction
+
+odiseo_sulu_site_assistant.get_statistics:
+    path: /site-assistant/statistics.{_format}
+    format: json
+    methods: [GET]
+    controller: odiseo_sulu_site_assistant.admin.statistics_controller::getAction

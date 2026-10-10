@@ -1,0 +1,11 @@
+# The agent's routes on the website kernel. Session, chat and memory come from the core; the
+# visitor cookie is scoped to this prefix (widget.cookie_path).
+odiseo_ai_conversational_agent:
+    resource: '@OdiseoAiConversationalAgentBundle/config/routes.yaml'
+    prefix: /agent
+
+# A contact route opened from the handoff card.
+odiseo_sulu_site_assistant_handoff_click:
+    path: /agent/handoff/click
+    controller: odiseo_sulu_site_assistant.controller.handoff::click
+    methods: [POST]

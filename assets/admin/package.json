@@ -1,0 +1,10 @@
+{
+    "name": "sulu-site-assistant-bundle",
+    "description": "Admin views of the Sulu site assistant: conversation transcript and statistics.",
+    "license": "MIT",
+    "main": "index.js",
+    "peerDependencies": {
+        "react": "^16.2.0 || ^17.0.0",
+        "sulu-admin-bundle": "*"
+    }
+}

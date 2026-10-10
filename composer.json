@@ -1,0 +1,46 @@
+{
+    "name": "odiseoteam/sulu-site-assistant-bundle",
+    "description": "Site assistant for Sulu: a conversational agent over the website's pages and articles that hands visitors to a person, built on odiseoteam/ai-conversational-agent-bundle.",
+    "type": "symfony-bundle",
+    "keywords": [
+        "sulu",
+        "sulu-bundle",
+        "ai",
+        "agent",
+        "chatbot",
+        "site-assistant"
+    ],
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "cmsig/seal": "^0.12",
+        "doctrine/orm": "^3.3",
+        "odiseoteam/ai-conversational-agent-bundle": "^0.2@dev",
+        "sulu/sulu": "^3.0",
+        "symfony/rate-limiter": "^7.3"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Odiseo\\SuluSiteAssistantBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Odiseo\\SuluSiteAssistantBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "0.1-dev"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

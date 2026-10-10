@@ -1,0 +1,933 @@
+// Site assistant widget: launcher, panel and cards.
+// Colors, fonts, radii, shadows and motion come from the `--sa-*` tokens. Redefine them in a
+// stylesheet loaded after this one to match the site.
+
+:root {
+  --sa-font: inherit;
+  --sa-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --sa-primary: #2563eb;
+  --sa-primary-deep: #1d4ed8;
+  --sa-primary-soft: #dbeafe;
+  --sa-on-primary: #ffffff;
+  --sa-accent: #f59e0b;
+  --sa-accent-soft: #fef3c7;
+  --sa-ok: #15803d;
+  --sa-ok-soft: #dcfce7;
+  --sa-danger: #dc2626;
+  --sa-danger-deep: #b91c1c;
+
+  --sa-ink: #1b1b1b;
+  --sa-ink-60: #5a5a5a;
+  --sa-ink-40: #8a8a8a;
+  --sa-line: #e5e5e5;
+  --sa-bone: #f5f5f4;
+  --sa-cream: #fafaf9;
+  --sa-paper: #ffffff;
+
+  --sa-radius-xs: 4px;
+  --sa-radius-sm: 8px;
+  --sa-radius-md: 12px;
+  --sa-radius-lg: 20px;
+  --sa-radius-pill: 999px;
+
+  --sa-shadow-xs: 0 1px 2px rgba(27, 27, 27, 0.06);
+  --sa-shadow-sm: 0 2px 6px rgba(27, 27, 27, 0.08);
+  --sa-shadow-md: 0 6px 16px rgba(27, 27, 27, 0.1);
+  --sa-shadow-lg: 0 14px 32px rgba(27, 27, 27, 0.12);
+  --sa-shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.35);
+
+  --sa-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --sa-dur-fast: 120ms;
+  --sa-dur-base: 200ms;
+  --sa-dur-slow: 320ms;
+
+  // Panel moves get their own curve: it brakes later than `--sa-ease`, which reads as weight.
+  --sa-ease-panel: cubic-bezier(0.32, 0.72, 0, 1);
+  --sa-dur-panel: 340ms;
+  --sa-dur-panel-out: 220ms;
+  --sa-dur-expand: 640ms;
+
+  --sa-width-docked: 560px;
+  --sa-width-wide: min(1400px, 96vw);
+  // The conversation is this wide in BOTH states, so widening the panel never re-wraps it: the
+  // extra width goes to the margins and to the product grid. 524 is the docked width minus the
+  // 18px gutters, which is why docked looks unchanged.
+  --sa-column: 524px;
+}
+
+$agent-mobile: 767.98px;
+
+.agent-widget {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1040;
+  font-family: var(--sa-font);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sa-ink);
+}
+
+// Label kept for screen readers only.
+.agent-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// -- launcher ------------------------------------------------------------------
+
+.agent-widget__launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px 12px 14px;
+  border: 0;
+  border-radius: var(--sa-radius-pill);
+  background: var(--sa-primary);
+  color: var(--sa-on-primary);
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  box-shadow: var(--sa-shadow-md), 0 0 0 4px rgba(47, 158, 90, 0.16);
+  cursor: pointer;
+  transition: transform var(--sa-dur-base) var(--sa-ease), box-shadow var(--sa-dur-base) var(--sa-ease), background var(--sa-dur-fast);
+
+  &:hover { background: var(--sa-primary-deep); transform: translateY(-1px); box-shadow: var(--sa-shadow-lg), 0 0 0 6px rgba(47, 158, 90, 0.18); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+  &[aria-expanded="true"] { display: none; }
+}
+
+.agent-widget__launcher-icon {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  stroke: none;
+}
+
+.agent-widget__launcher-spark { fill: var(--sa-accent); }
+
+// -- panel -------------------------------------------------------------------------
+
+// Used by the activity dot while a turn runs.
+@keyframes agent-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+
+// Full-height rail against the right edge, not a floating card: no outer margin and square
+// corners where it meets the viewport.
+.agent-widget__panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(var(--sa-width-docked), 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--sa-paper);
+  border-left: 1px solid var(--sa-line);
+  box-shadow: var(--sa-shadow-lg), 0 30px 60px -20px rgba(27, 27, 27, 0.25);
+  overflow: hidden;
+  transform: translateX(0);
+  transition:
+    transform var(--sa-dur-panel) var(--sa-ease-panel),
+    width var(--sa-dur-expand) var(--sa-ease-panel);
+
+  &[hidden] { display: none; }
+
+  // Drawer entry: the panel slides in from the edge it is docked to.
+  &.is-entering { transform: translateX(100%); }
+
+  // Closing is quicker than opening.
+  &.is-leaving { transition-duration: var(--sa-dur-panel-out), var(--sa-dur-expand); }
+
+  // The conversation gets more room too, but through the same gutter formula: it only starts
+  // growing once the panel is wider than the column, so it eases out instead of jumping.
+  &.is-wide {
+    width: var(--sa-width-wide);
+    --sa-column: 760px;
+  }
+}
+
+// Dims the site behind the wide panel; clicking it returns to the rail.
+.agent-widget__veil {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 27, 27, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: opacity var(--sa-dur-expand) var(--sa-ease-panel);
+
+  &.is-shown {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.agent-widget__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--sa-paper);
+}
+
+// Centred between the two action clusters regardless of how wide they are.
+.agent-widget__title {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--sa-ink-60);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-widget__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-widget__icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  box-shadow: 0 0 0 1px var(--sa-line), var(--sa-shadow-sm);
+  cursor: pointer;
+  transition: background var(--sa-dur-fast), box-shadow var(--sa-dur-fast);
+
+  // Line-weight glyphs read heavier than the bag at the same size, so they sit smaller.
+  svg { width: 18px; height: 18px; fill: currentColor; }
+  &:hover { background: var(--sa-bone); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+}
+
+// One button, two glyphs: the panel's state decides which one shows.
+.agent-widget__expand-close { display: none; }
+
+.is-wide {
+  .agent-widget__expand-open { display: none; }
+  .agent-widget__expand-close { display: block; }
+}
+
+// Mobile sheet affordance; hidden on desktop, where the panel is a rail.
+.agent-widget__grip { display: none; }
+
+// -- thread ------------------------------------------------------------------------
+
+// Gutters absorb the extra width so the content box stays at `--sa-column`. In the docked panel
+// the formula resolves to the plain 18px gutter; while the panel widens it grows instead of the
+// text, which is what keeps the expand animation from re-laying out the conversation each frame.
+@mixin agent-column($gutter) {
+  padding-left: max(#{$gutter}, calc((100% - var(--sa-column)) / 2));
+  padding-right: max(#{$gutter}, calc((100% - var(--sa-column)) / 2));
+}
+
+.agent-widget__thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 18px 16px;
+  @include agent-column(18px);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sa-line) transparent;
+}
+
+.agent-widget__welcome {
+  margin: auto 0 8px;
+  padding: 4px 4px 0;
+  color: var(--sa-ink-60);
+
+  p { margin: 0 0 6px; }
+}
+
+.agent-widget__welcome-title {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--sa-ink);
+}
+
+.agent-user {
+  align-self: flex-end;
+  max-width: 78%;
+  padding: 10px 16px;
+  border-radius: 20px;
+  background: var(--sa-primary-deep);
+  color: var(--sa-on-primary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-shadow: var(--sa-shadow-xs);
+}
+
+.agent-turn {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.agent-turn__segments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &:empty { display: none; }
+}
+
+.agent-turn__activity:empty { display: none; }
+
+.agent-text {
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  font-size: 14.5px;
+
+  > * { margin: 0 0 10px; }
+  > :last-child { margin-bottom: 0; }
+  h3, h4, h5 { font-size: 15px; font-weight: 700; line-height: 1.3; margin-top: 4px; }
+  ul, ol { padding-left: 22px; }
+  li { margin-bottom: 3px; }
+  li::marker { color: var(--sa-primary-deep); }
+  code { padding: 1px 5px; border-radius: var(--sa-radius-xs); background: var(--sa-bone); color: inherit; font-size: 13px; }
+  a { color: var(--sa-primary-deep); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { color: var(--sa-primary); }
+  hr { margin: 10px 0; border: 0; border-top: 1px solid var(--sa-line); }
+  blockquote { margin: 0 0 10px; padding-left: 12px; border-left: 3px solid var(--sa-line); color: var(--sa-ink-60); font-style: italic; }
+  blockquote p { margin: 0 0 4px; }
+}
+
+.agent-md-table {
+  overflow-x: auto;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-sm);
+  background: var(--sa-paper);
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 7px 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sa-ink-60); background: var(--sa-cream); text-align: left; }
+  td { padding: 7px 10px; border-top: 1px solid var(--sa-line); vertical-align: top; }
+  td:not(:first-child) { white-space: nowrap; }
+}
+
+// Activity indicator, below the streaming text for the whole turn. Override
+// `activity_indicator.html.twig` to replace the node; the tool label sits next to it.
+.agent-activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-height: 24px;
+  font-size: 13px;
+  color: var(--sa-ink-60);
+
+  span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  span:empty { display: none; }
+}
+
+.agent-activity__indicator { flex: 0 0 auto; }
+
+.agent-activity__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sa-primary);
+  animation: agent-pulse 1.2s ease-in-out infinite;
+}
+
+.agent-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(238, 50, 36, 0.3);
+  border-radius: var(--sa-radius-md);
+  background: #fdeceb;
+  color: var(--sa-danger-deep);
+  font-size: 13px;
+}
+
+.agent-error__retry {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--sa-radius-pill);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--sa-danger-deep); color: #fff; border-color: var(--sa-danger-deep); }
+}
+
+// -- shimmer and entrance -----------------------------------------------------
+
+@keyframes agent-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+%agent-shimmer {
+  background: linear-gradient(100deg, var(--sa-line) 35%, var(--sa-paper) 50%, var(--sa-line) 65%);
+  background-size: 200% 100%;
+  animation: agent-shimmer 1.4s linear infinite;
+}
+
+.agent-skeleton {
+  @extend %agent-shimmer;
+  border-radius: var(--sa-radius-sm);
+
+  &--line { height: 14px; margin-bottom: 8px; }
+  &--tile { flex: 0 0 168px; height: 300px; border-radius: var(--sa-radius-md); }
+  &--compact { flex-basis: 148px; height: 210px; }
+  &--row { flex-basis: auto; width: 100%; height: 90px; }
+  &--compare { flex-basis: auto; height: 220px; }
+  &__lines { padding: 4px 0; }
+
+  .agent-card--skeleton .agent-pages { overflow: hidden; }
+}
+
+@keyframes agent-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.agent-reveal { animation: agent-reveal 240ms var(--sa-ease) both; }
+
+// -- chips -----------------------------------------------------------------------
+
+.agent-widget__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 18px 10px;
+  @include agent-column(18px);
+
+  &:empty { display: none; }
+}
+
+.agent-chip {
+  flex: 0 0 auto;
+  max-width: 100%;
+  padding: 7px 13px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-pill);
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--sa-shadow-xs);
+  transition: border-color var(--sa-dur-fast), background var(--sa-dur-fast), color var(--sa-dur-fast);
+
+  &:hover { border-color: var(--sa-primary); background: var(--sa-primary-soft); color: var(--sa-primary-deep); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+  .is-busy & { opacity: 0.5; pointer-events: none; }
+}
+
+// -- composer -----------------------------------------------------------------
+
+.agent-widget__composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0 12px 12px;
+  margin-left: max(12px, calc((100% - var(--sa-column)) / 2));
+  margin-right: max(12px, calc((100% - var(--sa-column)) / 2));
+  padding: 6px 6px 6px 18px;
+  // A filled pill on the white panel instead of an outlined box: the border only appears on
+  // focus, where it carries meaning.
+  border: 1px solid transparent;
+  border-radius: 24px;
+  background: var(--sa-bone);
+  transition: border-color var(--sa-dur-fast), box-shadow var(--sa-dur-fast), background var(--sa-dur-fast);
+
+  &:focus-within { border-color: var(--sa-primary); background: var(--sa-paper); box-shadow: var(--sa-shadow-focus); }
+
+  textarea {
+    flex: 1;
+    min-width: 0;
+    max-height: 140px;
+    padding: 9px 0;
+    border: 0;
+    background: transparent;
+    resize: none;
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--sa-ink);
+
+    &:focus { outline: none; }
+    &::placeholder { color: var(--sa-ink-40) !important; }
+    &:disabled { color: var(--sa-ink-60); }
+
+    // Roomier composer once the panel has the width to carry it.
+    .is-wide & {
+      max-height: 200px;
+      padding: 12px 0;
+      font-size: 17px;
+    }
+  }
+}
+
+.agent-widget__send {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 13px;
+  background: var(--sa-ink);
+  color: var(--sa-paper);
+  cursor: pointer;
+  transition: opacity var(--sa-dur-fast), transform var(--sa-dur-fast) var(--sa-ease), background var(--sa-dur-fast);
+
+  // Grows with the composer, or the taller textarea pushes its centre off the button's.
+  .is-wide & {
+    flex-basis: 46px;
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+  }
+
+  svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  &:hover:not(:disabled) { background: var(--sa-primary-deep); transform: translateY(-1px); }
+  &:disabled { opacity: 0.3; cursor: default; }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+}
+
+// -- cards --------------------------------------------------------------------
+
+.agent-card {
+  padding: 14px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-md);
+  background: var(--sa-paper);
+  box-shadow: var(--sa-shadow-xs);
+
+  p { margin: 0 0 6px; }
+  > p:last-child { margin-bottom: 0; }
+}
+
+.agent-card__title { margin: 0 0 10px; font-size: 15px; font-weight: 700; line-height: 1.3; }
+.agent-card__intro { color: var(--sa-ink-60); }
+.agent-card__sources { margin: 10px 0 0 !important; font-size: 12px; color: var(--sa-ink-40); overflow-wrap: anywhere; }
+
+.agent-card__action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: var(--sa-radius-sm);
+  border: 1px solid var(--sa-line);
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background var(--sa-dur-fast), border-color var(--sa-dur-fast);
+
+  &:hover { border-color: var(--sa-ink); }
+}
+
+.agent-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-pill);
+  background: var(--sa-bone);
+  color: var(--sa-ink-60);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &--accent { border-color: transparent; background: var(--sa-accent-soft); color: var(--sa-ink); font-size: 12px; }
+}
+
+// -- pages -----------------------------------------------------------------------
+
+$tile-width: 200px;
+
+.agent-carousel {
+  position: relative;
+  margin: 0 -14px;
+
+  // Fades and arrows only on the side with more content.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 8px;
+    width: 40px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--sa-dur-base);
+    z-index: 1;
+  }
+  &::before { left: 0; background: linear-gradient(to right, var(--sa-paper), transparent); }
+  &::after { right: 0; background: linear-gradient(to left, var(--sa-paper), transparent); }
+  &.has-prev::before, &.has-next::after { opacity: 1; }
+  &.has-prev .agent-carousel__nav--prev, &.has-next .agent-carousel__nav--next { opacity: 1; pointer-events: auto; }
+}
+
+.agent-carousel__nav {
+  position: absolute;
+  top: calc(50% - 4px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--sa-line);
+  border-radius: 50%;
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: var(--sa-shadow-md);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: opacity var(--sa-dur-base), border-color var(--sa-dur-fast);
+
+  &--prev { left: 4px; }
+  &--next { right: 4px; }
+  &--prev::before { content: '‹'; }
+  &--next::before { content: '›'; }
+  &:hover { border-color: var(--sa-primary); color: var(--sa-primary-deep); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+
+  @media (hover: none) { display: none; }
+}
+
+.agent-pages {
+  display: flex;
+  gap: 10px;
+
+  &--carousel {
+    overflow-x: auto;
+    padding: 2px 14px 8px;
+    scroll-snap-type: x proximity;
+    scroll-padding: 14px;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+  &--carousel .agent-page { flex: 0 0 $tile-width; scroll-snap-align: start; }
+}
+
+// Page tile: optional image, kind, title, and the reason it is on the list (or its summary).
+.agent-page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-md);
+  background: var(--sa-paper);
+  overflow: hidden;
+  color: var(--sa-ink);
+  text-decoration: none;
+  transition: border-color var(--sa-dur-fast), box-shadow var(--sa-dur-fast);
+
+  &:hover { border-color: var(--sa-primary); box-shadow: var(--sa-shadow-sm); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+}
+
+.agent-page__media {
+  aspect-ratio: 16 / 9;
+  background: var(--sa-cream);
+
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+
+.agent-page__body { display: flex; flex: 1; flex-direction: column; gap: 4px; padding: 10px 12px 12px; }
+
+.agent-page__kind {
+  font-family: var(--sa-font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sa-ink-40);
+}
+
+.agent-page__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.agent-page__note {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0 !important;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--sa-ink-60);
+}
+
+.agent-page--recommended { border-color: var(--sa-primary); }
+
+// -- handoff -----------------------------------------------------------------------
+
+.agent-card--handoff { border-color: var(--sa-primary); }
+
+.agent-handoff__summary {
+  margin: 0 0 12px !important;
+  padding: 10px 12px;
+  border-left: 3px solid var(--sa-primary);
+  border-radius: 0 var(--sa-radius-sm) var(--sa-radius-sm) 0;
+  background: var(--sa-bone);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.agent-handoff__label {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--sa-font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sa-ink-60);
+}
+
+.agent-handoff__pages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+
+.agent-handoff__page {
+  padding: 4px 10px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-pill);
+  font-size: 12px;
+  color: var(--sa-ink);
+  text-decoration: none;
+
+  &:hover { border-color: var(--sa-primary); }
+}
+
+.agent-handoff__routes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.agent-handoff__route {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-pill);
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--sa-dur-fast), border-color var(--sa-dur-fast);
+
+  &:hover { border-color: var(--sa-primary); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+
+  &--primary {
+    border-color: var(--sa-primary);
+    background: var(--sa-primary);
+    color: var(--sa-on-primary);
+
+    &:hover { background: var(--sa-primary-deep); border-color: var(--sa-primary-deep); }
+  }
+}
+
+.agent-handoff__note { margin: 10px 0 0 !important; font-size: 12px; color: var(--sa-ink-60); }
+
+// -- comparison ------------------------------------------------------------------
+
+.agent-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+// Four subgrid rows: header, best for, pros and cons.
+.agent-compare {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  gap: 10px;
+  align-content: start;
+  padding: 12px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-md);
+  background: var(--sa-paper);
+
+  &.is-recommended { border-color: var(--sa-primary); background: var(--sa-primary-soft); }
+}
+
+@media (max-width: 420px) {
+  .agent-comparison { grid-template-columns: minmax(0, 1fr); }
+  .agent-compare { grid-row: auto; grid-template-rows: none; }
+}
+
+.agent-compare__head { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+
+.agent-compare__media {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--sa-radius-sm);
+  background: var(--sa-cream);
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.agent-compare__info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.agent-compare__label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sa-primary-deep);
+}
+
+.agent-compare__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--sa-ink);
+  text-decoration: none;
+
+  &:hover { color: var(--sa-primary-deep); }
+}
+
+.agent-compare__best {
+  padding: 6px 9px;
+  border-radius: var(--sa-radius-sm);
+  background: var(--sa-bone);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--sa-ink);
+
+  .is-recommended & { background: rgba(255, 255, 255, 0.7); }
+}
+
+.agent-compare__best-label { font-weight: 700; }
+
+.agent-compare__terms {
+  font-size: 12.5px;
+  line-height: 1.4;
+
+  ul { margin: 2px 0 0; padding-left: 16px; }
+  li { margin-bottom: 2px; }
+  &--pros li::marker { color: var(--sa-ok); }
+  &--cons li::marker { color: var(--sa-ink-40); }
+  &--cons li { color: var(--sa-ink-60); }
+}
+
+.agent-compare__terms-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  .agent-compare__terms--pros & { color: var(--sa-ok); }
+  .agent-compare__terms--cons & { color: var(--sa-ink-60); }
+}
+
+
+// -- mobile: full screen ------------------------------------------------------
+
+@media (max-width: $agent-mobile) {
+  .agent-widget { right: 12px; bottom: 12px; }
+
+  // A bottom sheet, not a rail: rounded top corners, the site showing above it, and it rises
+  // from the bottom edge instead of sliding in from the side.
+  .agent-widget__panel {
+    top: 28px;
+    left: 0;
+    width: auto;
+    border-left: 0;
+    border-top-left-radius: var(--sa-radius-lg);
+    border-top-right-radius: var(--sa-radius-lg);
+
+    &.is-entering { transform: translateY(100%); }
+    &.is-wide { width: auto; }
+  }
+
+  // No wide state on a screen the sheet already fills.
+  .agent-widget__expand,
+  .agent-widget__veil { display: none; }
+
+  .agent-widget__grip {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: var(--sa-radius-pill);
+    background: var(--sa-line);
+  }
+
+  .agent-widget__head { padding-top: 6px; }
+
+  .agent-widget__thread { padding: 16px 14px 10px; }
+  .agent-widget__chips { padding: 6px 14px 8px; }
+  .agent-widget__composer { margin: 0 10px calc(10px + env(safe-area-inset-bottom)); }
+  .agent-widget__composer textarea { font-size: 16px; } // prevents iOS zoom on focus
+  .agent-user { max-width: 86%; }
+
+  body.agent-chat-open { overflow: hidden; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-widget__panel,
+  .agent-widget__veil,
+  .agent-reveal,
+  .agent-skeleton,
+  .agent-activity__indicator,
+  .agent-activity__indicator * {
+    animation: none;
+    transition: none;
+  }
+}
+

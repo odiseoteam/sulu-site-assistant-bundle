@@ -1,0 +1,17 @@
+{
+    "name": "@odiseoteam/sulu-site-assistant-widget",
+    "private": true,
+    "description": "Chat widget of the Sulu site assistant: sources in assets/widget, built into public/.",
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "build:js": "esbuild assets/widget/entry.js --bundle --minify --format=esm --target=es2020 --outfile=public/widget.js",
+        "build:css": "sass --no-source-map --style=compressed assets/widget/styles/site-assistant.scss public/widget.css",
+        "build": "npm run build:js && npm run build:css"
+    },
+    "devDependencies": {
+        "@hotwired/stimulus": "^3.2.2",
+        "esbuild": "^0.25.0",
+        "sass": "^1.93.0"
+    }
+}

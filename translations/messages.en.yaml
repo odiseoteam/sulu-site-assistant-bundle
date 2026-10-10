@@ -1,0 +1,53 @@
+odiseo_sulu_site_assistant:
+    widget:
+        launcher: 'Ask us'
+        dialog_label: 'Site assistant'
+        title: 'Assistant'
+        close: 'Close'
+        expand: 'Expand'
+        collapse: 'Collapse'
+        send: 'Send'
+        welcome:
+            title: 'How can we help?'
+            body: 'Ask about what we do, how we work or anything on this site. The answers come from our own pages.'
+        input:
+            label: 'Your message'
+            placeholder: 'Ask a question'
+            placeholder_busy: 'Thinking…'
+        status:
+            thinking: 'Thinking'
+    card:
+        recommended: 'Recommended'
+        pros: 'Pros'
+        cons: 'Cons'
+        best_for: 'Best for'
+        retry: 'Try again'
+        carousel:
+            prev: 'Previous'
+            next: 'More'
+        comparison:
+            compared_on: 'Compared on'
+        handoff:
+            summary: 'What we understood'
+            route:
+                page: 'Contact us'
+                email: 'Write to us'
+                booking: 'Book a call'
+    tool:
+        search_content: 'Searching the site…'
+        get_content: 'Reading the page…'
+        recall_memories: 'Remembering what you told me…'
+        save_memory: 'Saving that for next time…'
+        load_skill: 'Loading…'
+        presenting: 'Preparing the answer…'
+    error:
+        js:
+            connection_lost: 'Connection lost. Try again.'
+            unavailable: "The assistant isn't available right now."
+        http:
+            too_many_sessions: 'Too many chats from this connection. Please try later.'
+            too_many_messages: 'Too many messages in a short time. Please try again shortly.'
+            empty_message: 'The message is empty.'
+            not_configured: 'The assistant is not configured yet.'
+            turn_failed: 'Something went wrong on our side. Please try again in a moment.'
+            budget_exceeded: 'The assistant has reached its limit for now. Please get in touch directly.'
