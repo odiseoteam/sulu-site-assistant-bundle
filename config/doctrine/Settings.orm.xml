@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\Settings" table="odiseo_site_assistant_settings">
+        <unique-constraints>
+            <unique-constraint name="uniq_odiseo_site_assistant_settings_webspace" columns="webspace_key" />
+        </unique-constraints>
+
+        <id name="id" column="id" type="integer">
+            <generator strategy="AUTO" />
+        </id>
+
+        <field name="webspaceKey" column="webspace_key" type="string" length="64" />
+        <field name="enabled" type="boolean" />
+        <field name="turnModel" column="turn_model" type="string" length="64" nullable="true" />
+        <field name="turnEffort" column="turn_effort" type="string" length="16" nullable="true" />
+        <field name="memoryModel" column="memory_model" type="string" length="64" nullable="true" />
+        <!-- Encrypted: far longer than the key itself. -->
+        <field name="anthropicApiKey" column="anthropic_api_key" type="text" nullable="true" />
+        <field name="openaiApiKey" column="openai_api_key" type="text" nullable="true" />
+        <field name="sessionBudgetUsd" column="session_budget_usd" type="float" nullable="true" />
+        <field name="dailyBudgetUsd" column="daily_budget_usd" type="float" nullable="true" />
+        <field name="monthlyBudgetUsd" column="monthly_budget_usd" type="float" nullable="true" />
+        <field name="brandName" column="brand_name" type="string" length="255" nullable="true" />
+        <field name="assistantName" column="assistant_name" type="string" length="255" nullable="true" />
+        <field name="brandVoice" column="brand_voice" type="text" nullable="true" />
+        <field name="memoryEnabled" column="memory_enabled" type="boolean" nullable="true" />
+        <field name="memoryRetentionDays" column="memory_retention_days" type="integer" nullable="true" />
+        <field name="texts" type="json" />
+        <field name="updatedBy" column="updated_by" type="string" length="255" nullable="true" />
+        <field name="createdAt" column="created_at" type="datetime_immutable" />
+        <field name="updatedAt" column="updated_at" type="datetime_immutable" nullable="true" />
+    </mapped-superclass>
+</doctrine-mapping>

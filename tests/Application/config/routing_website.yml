@@ -1,0 +1,5 @@
+odiseo_sulu_site_assistant:
+    resource: "@OdiseoSuluSiteAssistantBundle/config/routes/website.yaml"
+
+sulu_website:
+    resource: "@SuluWebsiteBundle/Resources/config/routing_website.yaml"

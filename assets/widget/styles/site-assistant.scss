@@ -1,14 +1,16 @@
 // Site assistant widget: launcher, panel and cards.
-// Colors, fonts, radii, shadows and motion come from the `--sa-*` tokens. Redefine them in a
-// stylesheet loaded after this one to match the site.
+// Colors, fonts, radii, shadows and motion come from the `--sa-*` tokens. Redefine them on
+// `.agent-widget` in the site's own stylesheet: the selector wins over these defaults whatever
+// order the stylesheets load in.
 
 :root {
   --sa-font: inherit;
   --sa-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --sa-primary: #2563eb;
-  --sa-primary-deep: #1d4ed8;
-  --sa-primary-soft: #dbeafe;
+  --sa-primary-deep: color-mix(in srgb, var(--sa-primary) 70%, #000);
+  --sa-primary-soft: color-mix(in srgb, var(--sa-primary) 14%, #fff);
+  // Text on a primary fill. A light primary needs a dark one.
   --sa-on-primary: #ffffff;
   --sa-accent: #f59e0b;
   --sa-accent-soft: #fef3c7;
@@ -21,9 +23,13 @@
   --sa-ink-60: #5a5a5a;
   --sa-ink-40: #8a8a8a;
   --sa-line: #e5e5e5;
+  --sa-line-strong: #d4d4d4;
   --sa-bone: #f5f5f4;
   --sa-cream: #fafaf9;
   --sa-paper: #ffffff;
+  // The customer's messages, and the band under the conversation that holds the composer.
+  --sa-bubble: #efefef;
+  --sa-foot: #f6f6f5;
 
   --sa-radius-xs: 4px;
   --sa-radius-sm: 8px;
@@ -35,7 +41,7 @@
   --sa-shadow-sm: 0 2px 6px rgba(27, 27, 27, 0.08);
   --sa-shadow-md: 0 6px 16px rgba(27, 27, 27, 0.1);
   --sa-shadow-lg: 0 14px 32px rgba(27, 27, 27, 0.12);
-  --sa-shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.35);
+  --sa-shadow-focus: 0 0 0 3px color-mix(in srgb, var(--sa-primary) 35%, transparent);
 
   --sa-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --sa-dur-fast: 120ms;
@@ -46,40 +52,33 @@
   --sa-ease-panel: cubic-bezier(0.32, 0.72, 0, 1);
   --sa-dur-panel: 340ms;
   --sa-dur-panel-out: 220ms;
-  --sa-dur-expand: 640ms;
+  --sa-dur-expand: 420ms;
 
-  --sa-width-docked: 560px;
-  --sa-width-wide: min(1400px, 96vw);
-  // The conversation is this wide in BOTH states, so widening the panel never re-wraps it: the
-  // extra width goes to the margins and to the product grid. 524 is the docked width minus the
-  // 18px gutters, which is why docked looks unchanged.
-  --sa-column: 524px;
+  // A window over the page, not a rail: the site stays in sight on both sides of it.
+  --sa-width-docked: 480px;
+  --sa-width-wide: 880px;
+  --sa-height: 800px;
+  // The conversation's width. Docked it is the window minus its gutters; widened, the extra
+  // width goes to the margins and to the grid of pages.
+  --sa-column: 444px;
+
+  // The launcher's distance to the window's corner. A site raises it over its own fixed bars.
+  --sa-launcher-right: 28px;
+  --sa-launcher-bottom: 28px;
 }
 
 $agent-mobile: 767.98px;
 
 .agent-widget {
   position: fixed;
-  right: 20px;
-  bottom: 20px;
+  right: var(--sa-launcher-right);
+  bottom: var(--sa-launcher-bottom);
   z-index: 1040;
+  transition: bottom var(--sa-dur-slow) var(--sa-ease);
   font-family: var(--sa-font);
   font-size: 14px;
   line-height: 1.5;
   color: var(--sa-ink);
-}
-
-// Label kept for screen readers only.
-.agent-visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
 }
 
 // -- launcher ------------------------------------------------------------------
@@ -87,32 +86,122 @@ $agent-mobile: 767.98px;
 .agent-widget__launcher {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 18px 12px 14px;
-  border: 0;
+  gap: 10px;
+  padding: 10px 18px 10px 12px;
+  border: 1px solid var(--sa-line);
   border-radius: var(--sa-radius-pill);
-  background: var(--sa-primary);
-  color: var(--sa-on-primary);
+  background: var(--sa-paper);
+  color: var(--sa-ink);
   font: inherit;
   font-weight: 700;
   letter-spacing: 0.01em;
-  box-shadow: var(--sa-shadow-md), 0 0 0 4px rgba(47, 158, 90, 0.16);
+  box-shadow: 0 8px 24px rgba(27, 27, 27, 0.14), 0 1px 3px rgba(27, 27, 27, 0.08);
   cursor: pointer;
-  transition: transform var(--sa-dur-base) var(--sa-ease), box-shadow var(--sa-dur-base) var(--sa-ease), background var(--sa-dur-fast);
+  transition: transform var(--sa-dur-base) var(--sa-ease), box-shadow var(--sa-dur-base) var(--sa-ease),
+    padding var(--sa-dur-slow) var(--sa-ease), gap var(--sa-dur-slow) var(--sa-ease);
 
-  &:hover { background: var(--sa-primary-deep); transform: translateY(-1px); box-shadow: var(--sa-shadow-lg), 0 0 0 6px rgba(47, 158, 90, 0.18); }
-  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+  &:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(27, 27, 27, 0.18), 0 1px 3px rgba(27, 27, 27, 0.08); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus), 0 8px 24px rgba(27, 27, 27, 0.14); }
   &[aria-expanded="true"] { display: none; }
 }
 
+// The site's mark (`launcher_icon.html.twig`) fills this box.
 .agent-widget__launcher-icon {
-  width: 22px;
-  height: 22px;
-  fill: currentColor;
-  stroke: none;
+  display: grid;
+  place-items: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+
+  > svg, > img { display: block; width: 100%; height: 100%; }
+  > svg { fill: currentColor; }
 }
 
-.agent-widget__launcher-spark { fill: var(--sa-accent); }
+// A one-column grid, so the label can fold to zero width with a transition.
+.agent-widget__launcher-label {
+  display: grid;
+  grid-template-columns: 1fr;
+  transition: grid-template-columns var(--sa-dur-slow) var(--sa-ease), opacity var(--sa-dur-slow) var(--sa-ease);
+
+  > span { min-width: 0; overflow: hidden; white-space: nowrap; }
+}
+
+// Folded, only the icon: the label would keep covering the page.
+.agent-widget__launcher.is-folded {
+  gap: 0;
+  padding: 10px;
+
+  .agent-widget__launcher-label { grid-template-columns: 0fr; opacity: 0; }
+}
+
+// -- nudge -------------------------------------------------------------------------
+
+@keyframes agent-nudge-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+// A speech bubble over the launcher, its tail on the folded icon and the X on its corner.
+.agent-widget__nudge {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 14px);
+  transform-origin: 85% 100%;
+  animation: agent-nudge-in var(--sa-dur-slow) var(--sa-ease) both;
+
+  &[hidden] { display: none; }
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 17px;
+    bottom: -6px;
+    width: 12px;
+    height: 12px;
+    background: var(--sa-paper);
+    transform: rotate(45deg);
+    box-shadow: 3px 3px 4px rgba(27, 27, 27, 0.06);
+  }
+}
+
+.agent-widget__nudge-text {
+  position: relative;
+  z-index: 1;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 10px 28px rgba(27, 27, 27, 0.18), 0 1px 3px rgba(27, 27, 27, 0.08);
+  cursor: pointer;
+
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus), 0 10px 28px rgba(27, 27, 27, 0.18); }
+}
+
+.agent-widget__nudge-close {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--sa-line);
+  border-radius: 50%;
+  background: var(--sa-paper);
+  color: var(--sa-ink-60);
+  box-shadow: var(--sa-shadow-sm);
+  cursor: pointer;
+
+  svg { width: 14px; height: 14px; fill: currentColor; }
+  &:hover { color: var(--sa-ink); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+}
 
 // -- panel -------------------------------------------------------------------------
 
@@ -122,105 +211,74 @@ $agent-mobile: 767.98px;
   50% { opacity: 0.4; transform: scale(0.7); }
 }
 
-// Full-height rail against the right edge, not a floating card: no outer margin and square
-// corners where it meets the viewport.
+// A window in the corner where the launcher was, over the page.
 .agent-widget__panel {
   position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(var(--sa-width-docked), 100vw);
+  right: 24px;
+  bottom: 24px;
+  width: min(var(--sa-width-docked), calc(100vw - 48px));
+  height: min(var(--sa-height), calc(100vh - 48px));
   display: flex;
   flex-direction: column;
   background: var(--sa-paper);
-  border-left: 1px solid var(--sa-line);
-  box-shadow: var(--sa-shadow-lg), 0 30px 60px -20px rgba(27, 27, 27, 0.25);
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-lg);
+  // All around, not only below: in the corner most of a dropped shadow falls off the screen.
+  box-shadow: 0 8px 40px rgba(27, 27, 27, 0.18), 0 2px 8px rgba(27, 27, 27, 0.08);
   overflow: hidden;
-  transform: translateX(0);
+  transform-origin: bottom right;
   transition:
     transform var(--sa-dur-panel) var(--sa-ease-panel),
+    opacity var(--sa-dur-panel) var(--sa-ease-panel),
     width var(--sa-dur-expand) var(--sa-ease-panel);
 
   &[hidden] { display: none; }
 
-  // Drawer entry: the panel slides in from the edge it is docked to.
-  &.is-entering { transform: translateX(100%); }
+  // Entry: it rises from the launcher's corner.
+  &.is-entering { opacity: 0; transform: translateY(16px) scale(0.98); }
 
   // Closing is quicker than opening.
-  &.is-leaving { transition-duration: var(--sa-dur-panel-out), var(--sa-dur-expand); }
+  &.is-leaving { transition-duration: var(--sa-dur-panel-out), var(--sa-dur-panel-out), var(--sa-dur-expand); }
 
-  // The conversation gets more room too, but through the same gutter formula: it only starts
-  // growing once the panel is wider than the column, so it eases out instead of jumping.
+  // Twice as wide, still a window: the page stays in sight and is not dimmed.
   &.is-wide {
-    width: var(--sa-width-wide);
+    width: min(var(--sa-width-wide), calc(100vw - 48px));
     --sa-column: 760px;
-  }
-}
-
-// Dims the site behind the wide panel; clicking it returns to the rail.
-.agent-widget__veil {
-  position: fixed;
-  inset: 0;
-  background: rgba(27, 27, 27, 0.12);
-  opacity: 0;
-  pointer-events: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  transition: opacity var(--sa-dur-expand) var(--sa-ease-panel);
-
-  &.is-shown {
-    opacity: 1;
-    pointer-events: auto;
   }
 }
 
 .agent-widget__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 16px;
+  gap: 4px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--sa-line);
   background: var(--sa-paper);
-}
-
-// Centred between the two action clusters regardless of how wide they are.
-.agent-widget__title {
-  flex: 1;
-  min-width: 0;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
-  color: var(--sa-ink-60);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .agent-widget__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  margin-left: auto;
 }
 
 .agent-widget__icon {
   position: relative;
   display: grid;
   place-items: center;
-  flex: 0 0 44px;
-  width: 44px;
-  height: 44px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   border: 0;
-  border-radius: 50%;
-  background: var(--sa-paper);
-  color: var(--sa-ink);
-  box-shadow: 0 0 0 1px var(--sa-line), var(--sa-shadow-sm);
+  border-radius: var(--sa-radius-sm);
+  background: transparent;
+  color: var(--sa-ink-60);
   cursor: pointer;
-  transition: background var(--sa-dur-fast), box-shadow var(--sa-dur-fast);
+  transition: background var(--sa-dur-fast), color var(--sa-dur-fast);
 
-  // Line-weight glyphs read heavier than the bag at the same size, so they sit smaller.
-  svg { width: 18px; height: 18px; fill: currentColor; }
-  &:hover { background: var(--sa-bone); }
+  svg { width: 20px; height: 20px; fill: currentColor; }
+  &:hover { background: var(--sa-bone); color: var(--sa-ink); }
   &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
 }
 
@@ -232,31 +290,57 @@ $agent-mobile: 767.98px;
   .agent-widget__expand-close { display: block; }
 }
 
-// Mobile sheet affordance; hidden on desktop, where the panel is a rail.
-.agent-widget__grip { display: none; }
-
 // -- thread ------------------------------------------------------------------------
 
-// Gutters absorb the extra width so the content box stays at `--sa-column`. In the docked panel
-// the formula resolves to the plain 18px gutter; while the panel widens it grows instead of the
-// text, which is what keeps the expand animation from re-laying out the conversation each frame.
+// Gutters absorb the extra width so the content box stays at `--sa-column`: in the docked
+// window the formula resolves to the plain gutter, widened it grows instead of the text.
 @mixin agent-column($gutter) {
   padding-left: max(#{$gutter}, calc((100% - var(--sa-column)) / 2));
   padding-right: max(#{$gutter}, calc((100% - var(--sa-column)) / 2));
 }
 
 .agent-widget__thread {
+  // What a card bleeds by to reach the window's edge.
+  --sa-gutter: 18px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 24px 18px 16px;
-  @include agent-column(18px);
+  padding: 20px var(--sa-gutter) 16px;
+  @include agent-column(var(--sa-gutter));
   display: flex;
   flex-direction: column;
   gap: 28px;
   scrollbar-width: thin;
   scrollbar-color: var(--sa-line) transparent;
+}
+
+// The header's middle: the assistant's name, or the site's logo (`brand.html.twig`).
+.agent-widget__brand {
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  color: var(--sa-ink);
+
+  svg, img { display: block; max-width: 120px; max-height: 28px; width: auto; height: auto; }
+}
+
+.agent-widget__title {
+  display: block;
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .agent-widget__welcome {
@@ -265,6 +349,7 @@ $agent-mobile: 767.98px;
   color: var(--sa-ink-60);
 
   p { margin: 0 0 6px; }
+  .agent-widget__brand + & { margin-top: -14px; }
 }
 
 .agent-widget__welcome-title {
@@ -275,16 +360,16 @@ $agent-mobile: 767.98px;
   color: var(--sa-ink);
 }
 
+// Grey, so the primary color stays for actions.
 .agent-user {
   align-self: flex-end;
   max-width: 78%;
   padding: 10px 16px;
-  border-radius: 20px;
-  background: var(--sa-primary-deep);
-  color: var(--sa-on-primary);
+  border-radius: 18px 18px 4px 18px;
+  background: var(--sa-bubble);
+  color: var(--sa-ink);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  box-shadow: var(--sa-shadow-xs);
 }
 
 .agent-turn {
@@ -359,32 +444,111 @@ $agent-mobile: 767.98px;
   animation: agent-pulse 1.2s ease-in-out infinite;
 }
 
+// A passing error: a quiet line in the turn, red only when the connection dropped.
 .agent-error {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(238, 50, 36, 0.3);
-  border-radius: var(--sa-radius-md);
-  background: #fdeceb;
-  color: var(--sa-danger-deep);
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--sa-ink-60);
   font-size: 13px;
+  line-height: 1.45;
+
+  .agent-icon { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 1px; }
 }
+
+.agent-error--offline { color: var(--sa-danger-deep); }
+
+.agent-error__text { min-width: 0; }
 
 .agent-error__retry {
-  flex: 0 0 auto;
-  padding: 6px 12px;
-  border: 1px solid currentColor;
-  border-radius: var(--sa-radius-pill);
-  background: transparent;
-  color: inherit;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--sa-ink);
   font: inherit;
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   cursor: pointer;
 
-  &:hover { background: var(--sa-danger-deep); color: #fff; border-color: var(--sa-danger-deep); }
+  .agent-error--offline & { color: inherit; }
+  &:hover { text-decoration-thickness: 2px; }
 }
+
+// A reached cap or an outage: the site's contact links in place of the composer.
+.agent-widget__composer[hidden] { display: none; }
+
+.agent-closed {
+  padding: 18px 18px 16px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-md);
+  background: var(--sa-cream);
+  color: var(--sa-ink);
+}
+
+.agent-closed__title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.agent-closed__text {
+  margin: 0 0 14px;
+  color: var(--sa-ink-60);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.agent-closed__contact + .agent-closed__contact { margin-top: 8px; }
+
+.agent-closed__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border: 1px solid var(--sa-ink);
+  border-radius: var(--sa-radius-pill);
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background var(--sa-dur-fast), border-color var(--sa-dur-fast);
+
+  .agent-icon { flex: 0 0 auto; width: 20px; height: 20px; }
+  &:hover { background: var(--sa-bone); }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+}
+
+.agent-closed__link--primary {
+  border-color: var(--sa-primary);
+  background: var(--sa-primary);
+  color: var(--sa-on-primary);
+
+  &:hover { border-color: var(--sa-primary-deep); background: var(--sa-primary-deep); }
+}
+
+.agent-closed__detail {
+  display: block;
+  margin-top: 6px;
+  color: var(--sa-ink-40);
+  font-size: 12px;
+  text-align: center;
+}
+
+// Line icons drawn by the widget.
+.agent-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.agent-icon--filled { fill: currentColor; stroke: none; }
 
 // -- shimmer and entrance -----------------------------------------------------
 
@@ -404,9 +568,7 @@ $agent-mobile: 767.98px;
   border-radius: var(--sa-radius-sm);
 
   &--line { height: 14px; margin-bottom: 8px; }
-  &--tile { flex: 0 0 168px; height: 300px; border-radius: var(--sa-radius-md); }
-  &--compact { flex-basis: 148px; height: 210px; }
-  &--row { flex-basis: auto; width: 100%; height: 90px; }
+  &--tile { flex: 0 0 168px; height: 230px; border-radius: var(--sa-radius-md); }
   &--compare { flex-basis: auto; height: 220px; }
   &__lines { padding: 4px 0; }
 
@@ -422,61 +584,67 @@ $agent-mobile: 767.98px;
 
 // -- chips -----------------------------------------------------------------------
 
+// The starter chips and each turn's suggestions: what the customer could say next, so they take
+// the shape of a sent message and stack on its side, below the latest answer.
 .agent-widget__chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px 18px 10px;
-  @include agent-column(18px);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  margin-top: -12px;
 
   &:empty { display: none; }
 }
 
 .agent-chip {
-  flex: 0 0 auto;
-  max-width: 100%;
-  padding: 7px 13px;
-  border: 1px solid var(--sa-line);
-  border-radius: var(--sa-radius-pill);
+  max-width: 85%;
+  padding: 8px 14px;
+  border: 1px solid var(--sa-line-strong);
+  border-radius: 18px 18px 4px 18px;
   background: var(--sa-paper);
   color: var(--sa-ink);
   font: inherit;
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
-  text-align: left;
+  text-align: right;
   cursor: pointer;
-  box-shadow: var(--sa-shadow-xs);
-  transition: border-color var(--sa-dur-fast), background var(--sa-dur-fast), color var(--sa-dur-fast);
+  transition: border-color var(--sa-dur-fast), background var(--sa-dur-fast);
 
-  &:hover { border-color: var(--sa-primary); background: var(--sa-primary-soft); color: var(--sa-primary-deep); }
+  &:hover { border-color: var(--sa-bubble); background: var(--sa-bubble); }
   &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
   .is-busy & { opacity: 0.5; pointer-events: none; }
 }
 
 // -- composer -----------------------------------------------------------------
 
+// A band of its own under the conversation, so typing reads apart from reading.
+.agent-widget__foot {
+  position: relative;
+  padding: 12px;
+  border-top: 1px solid var(--sa-line);
+  background: var(--sa-foot);
+
+  // Widened, the composer lines up with the conversation.
+  .is-wide & { @include agent-column(12px); }
+}
+
 .agent-widget__composer {
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  margin: 0 12px 12px;
-  margin-left: max(12px, calc((100% - var(--sa-column)) / 2));
-  margin-right: max(12px, calc((100% - var(--sa-column)) / 2));
-  padding: 6px 6px 6px 18px;
-  // A filled pill on the white panel instead of an outlined box: the border only appears on
-  // focus, where it carries meaning.
-  border: 1px solid transparent;
-  border-radius: 24px;
-  background: var(--sa-bone);
-  transition: border-color var(--sa-dur-fast), box-shadow var(--sa-dur-fast), background var(--sa-dur-fast);
+  padding: 5px 5px 5px 16px;
+  border: 1px solid var(--sa-line-strong);
+  border-radius: 22px;
+  background: var(--sa-paper);
+  transition: border-color var(--sa-dur-fast), box-shadow var(--sa-dur-fast);
 
-  &:focus-within { border-color: var(--sa-primary); background: var(--sa-paper); box-shadow: var(--sa-shadow-focus); }
+  &:focus-within { border-color: var(--sa-primary); box-shadow: var(--sa-shadow-focus); }
 
   textarea {
     flex: 1;
     min-width: 0;
     max-height: 140px;
-    padding: 9px 0;
+    padding: 8px 0;
     border: 0;
     background: transparent;
     resize: none;
@@ -488,40 +656,54 @@ $agent-mobile: 767.98px;
     &:focus { outline: none; }
     &::placeholder { color: var(--sa-ink-40) !important; }
     &:disabled { color: var(--sa-ink-60); }
-
-    // Roomier composer once the panel has the width to carry it.
-    .is-wide & {
-      max-height: 200px;
-      padding: 12px 0;
-      font-size: 17px;
-    }
   }
 }
 
 .agent-widget__send {
   display: grid;
   place-items: center;
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
   border: 0;
-  border-radius: 13px;
-  background: var(--sa-ink);
-  color: var(--sa-paper);
+  border-radius: 50%;
+  background: var(--sa-primary);
+  color: var(--sa-on-primary);
   cursor: pointer;
-  transition: opacity var(--sa-dur-fast), transform var(--sa-dur-fast) var(--sa-ease), background var(--sa-dur-fast);
-
-  // Grows with the composer, or the taller textarea pushes its centre off the button's.
-  .is-wide & {
-    flex-basis: 46px;
-    width: 46px;
-    height: 46px;
-    border-radius: 16px;
-  }
+  transition: transform var(--sa-dur-fast) var(--sa-ease), background var(--sa-dur-fast), color var(--sa-dur-fast);
 
   svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-  &:hover:not(:disabled) { background: var(--sa-primary-deep); transform: translateY(-1px); }
-  &:disabled { opacity: 0.3; cursor: default; }
+  &:hover:not(:disabled) { background: color-mix(in srgb, var(--sa-primary) 85%, #fff); transform: translateY(-1px); }
+  &:disabled { background: var(--sa-line); color: var(--sa-ink-40); cursor: default; }
+  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
+}
+
+// Floats over the conversation, just above the composer. Fades instead of `hidden`, which
+// cannot transition.
+.agent-widget__jump {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--sa-line);
+  border-radius: 50%;
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  box-shadow: 0 4px 14px rgba(27, 27, 27, 0.14);
+  transform: translateX(-50%);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms var(--sa-ease), visibility 0s linear 150ms, transform var(--sa-dur-fast) var(--sa-ease);
+
+  &.is-shown { opacity: 1; visibility: visible; transition-delay: 0s; }
+
+  svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  &:hover { transform: translateX(-50%) scale(1.08); }
   &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
 }
 
@@ -576,7 +758,8 @@ $agent-mobile: 767.98px;
 
 // -- pages -----------------------------------------------------------------------
 
-$tile-width: 200px;
+$tile-width: 168px;
+
 
 .agent-carousel {
   position: relative;
@@ -648,6 +831,28 @@ $tile-width: 200px;
   &--carousel .agent-page { flex: 0 0 $tile-width; scroll-snap-align: start; }
 }
 
+// A carousel of pages is a row of cards already: no frame around it, and it runs to the
+// window's edges.
+.agent-card--pages {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+
+  .agent-card__title { margin: 0 0 8px; font-size: 14px; }
+
+  > .agent-carousel { margin: 0 calc(-1 * var(--sa-gutter)); }
+  > .agent-carousel .agent-pages--carousel { padding: 2px var(--sa-gutter) 8px; scroll-padding: var(--sa-gutter); }
+}
+
+// The wide window has room for every page at once: a grid instead of a carousel.
+.agent-widget__panel.is-wide {
+  .agent-carousel { margin-left: 0; margin-right: 0; }
+  .agent-pages--carousel { display: grid; grid-template-columns: repeat(auto-fill, minmax($tile-width, 1fr)); padding: 2px 0 8px; overflow: visible; }
+  .agent-card--pages .agent-pages--carousel { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .agent-carousel::before, .agent-carousel::after, .agent-carousel__nav { display: none; }
+}
+
 // Page tile: optional image, kind, title, and the reason it is on the list (or its summary).
 .agent-page {
   display: flex;
@@ -670,6 +875,15 @@ $tile-width: 200px;
   background: var(--sa-cream);
 
   img { display: block; width: 100%; height: 100%; object-fit: cover; }
+}
+
+// No image: the page's icon on a quiet field, so tiles keep one height.
+.agent-page__media--empty {
+  display: grid;
+  place-items: center;
+  color: var(--sa-ink-40);
+
+  .agent-icon { width: 28px; height: 28px; }
 }
 
 .agent-page__body { display: flex; flex: 1; flex-direction: column; gap: 4px; padding: 10px 12px 12px; }
@@ -706,75 +920,6 @@ $tile-width: 200px;
 
 .agent-page--recommended { border-color: var(--sa-primary); }
 
-// -- handoff -----------------------------------------------------------------------
-
-.agent-card--handoff { border-color: var(--sa-primary); }
-
-.agent-handoff__summary {
-  margin: 0 0 12px !important;
-  padding: 10px 12px;
-  border-left: 3px solid var(--sa-primary);
-  border-radius: 0 var(--sa-radius-sm) var(--sa-radius-sm) 0;
-  background: var(--sa-bone);
-  font-size: 13.5px;
-  line-height: 1.5;
-}
-
-.agent-handoff__label {
-  display: block;
-  margin-bottom: 4px;
-  font-family: var(--sa-font-mono);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--sa-ink-60);
-}
-
-.agent-handoff__pages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
-
-.agent-handoff__page {
-  padding: 4px 10px;
-  border: 1px solid var(--sa-line);
-  border-radius: var(--sa-radius-pill);
-  font-size: 12px;
-  color: var(--sa-ink);
-  text-decoration: none;
-
-  &:hover { border-color: var(--sa-primary); }
-}
-
-.agent-handoff__routes { display: flex; flex-wrap: wrap; gap: 8px; }
-
-.agent-handoff__route {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid var(--sa-line);
-  border-radius: var(--sa-radius-pill);
-  background: var(--sa-paper);
-  color: var(--sa-ink);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background var(--sa-dur-fast), border-color var(--sa-dur-fast);
-
-  &:hover { border-color: var(--sa-primary); }
-  &:focus-visible { outline: none; box-shadow: var(--sa-shadow-focus); }
-
-  &--primary {
-    border-color: var(--sa-primary);
-    background: var(--sa-primary);
-    color: var(--sa-on-primary);
-
-    &:hover { background: var(--sa-primary-deep); border-color: var(--sa-primary-deep); }
-  }
-}
-
-.agent-handoff__note { margin: 10px 0 0 !important; font-size: 12px; color: var(--sa-ink-60); }
-
 // -- comparison ------------------------------------------------------------------
 
 .agent-comparison {
@@ -806,6 +951,7 @@ $tile-width: 200px;
 .agent-compare__head { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
 
 .agent-compare__media {
+  position: relative;
   flex: 0 0 56px;
   width: 56px;
   height: 56px;
@@ -875,53 +1021,101 @@ $tile-width: 200px;
   .agent-compare__terms--cons & { color: var(--sa-ink-60); }
 }
 
+// -- guide -------------------------------------------------------------------------
+
+.agent-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.agent-guide__section { display: flex; gap: 10px; }
+
+.agent-guide__num {
+  display: grid;
+  place-items: center;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--sa-primary-soft);
+  color: var(--sa-primary-deep);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.agent-guide__body {
+  flex: 1;
+  min-width: 0;
+
+  h4 { margin: 2px 0; font-size: 14px; font-weight: 700; line-height: 1.35; }
+  p { margin: 0; line-height: 1.55; color: var(--sa-ink-60); }
+}
+
+.agent-card__sources a { color: var(--sa-primary-deep); }
+
+// -- handoff -----------------------------------------------------------------------
+
+.agent-handoff__reference code { font-weight: 700; }
+.agent-card .agent-handoff__opening { margin: 0 0 12px; line-height: 1.55; }
+.agent-card .agent-handoff__next { margin: 8px 0; line-height: 1.55; }
+.agent-card .agent-handoff__alternative { margin: 16px 0 0; line-height: 1.55; }
+.agent-handoff__choice { width: 100%; margin-top: 8px; cursor: pointer; }
 
 // -- mobile: full screen ------------------------------------------------------
 
 @media (max-width: $agent-mobile) {
-  .agent-widget { right: 12px; bottom: 12px; }
+  :root {
+    --sa-launcher-right: 16px;
+    --sa-launcher-bottom: 16px;
+  }
 
-  // A bottom sheet, not a rail: rounded top corners, the site showing above it, and it rises
-  // from the bottom edge instead of sliding in from the side.
+  // The whole screen: there is no page left to see beside it. It rises from the bottom edge.
   .agent-widget__panel {
-    top: 28px;
-    left: 0;
+    inset: 0;
     width: auto;
-    border-left: 0;
-    border-top-left-radius: var(--sa-radius-lg);
-    border-top-right-radius: var(--sa-radius-lg);
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
 
-    &.is-entering { transform: translateY(100%); }
+    &.is-entering { opacity: 1; transform: translateY(100%); }
     &.is-wide { width: auto; }
   }
 
-  // No wide state on a screen the sheet already fills.
-  .agent-widget__expand,
-  .agent-widget__veil { display: none; }
+  // No wide state on a screen the panel already fills.
+  .agent-widget__expand { display: none; }
 
-  .agent-widget__grip {
-    display: block;
-    width: 36px;
-    height: 4px;
-    margin: 8px auto 0;
-    border-radius: var(--sa-radius-pill);
-    background: var(--sa-line);
-  }
+  .agent-widget__head { padding-top: calc(10px + env(safe-area-inset-top)); }
 
-  .agent-widget__head { padding-top: 6px; }
-
-  .agent-widget__thread { padding: 16px 14px 10px; }
-  .agent-widget__chips { padding: 6px 14px 8px; }
-  .agent-widget__composer { margin: 0 10px calc(10px + env(safe-area-inset-bottom)); }
+  .agent-widget__thread { --sa-gutter: 14px; padding-top: 16px; padding-bottom: 10px; }
+  .agent-widget__foot { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
   .agent-widget__composer textarea { font-size: 16px; } // prevents iOS zoom on focus
   .agent-user { max-width: 86%; }
+
+  // A carousel of pages stacks as rows: shorter than tiles, and none hidden sideways.
+  .agent-widget__panel .agent-card--pages {
+    > .agent-carousel { margin: 0; }
+    > .agent-carousel::before, > .agent-carousel::after, .agent-carousel__nav { display: none; }
+
+    .agent-pages.agent-pages--carousel { display: flex; flex-direction: column; padding: 0; overflow: visible; scroll-snap-type: none; }
+    .agent-page { flex-direction: row; flex: none; }
+    .agent-page__media { flex: 0 0 96px; aspect-ratio: auto; }
+    .agent-skeleton--tile { flex: none; width: 100%; height: 90px; }
+  }
 
   body.agent-chat-open { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .agent-widget,
+  .agent-widget__nudge,
+  .agent-widget__launcher,
+  .agent-widget__launcher-label,
   .agent-widget__panel,
-  .agent-widget__veil,
   .agent-reveal,
   .agent-skeleton,
   .agent-activity__indicator,
@@ -931,3 +1125,69 @@ $tile-width: 200px;
   }
 }
 
+// -- showcase -----------------------------------------------------------------------
+// Standalone page, no layout: each card under its name.
+
+.agent-showcase {
+  margin: 0;
+  background: var(--sa-paper);
+  color: var(--sa-ink);
+  font-family: var(--sa-font);
+}
+
+.agent-showcase__page {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.agent-showcase__kicker {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sa-ink-60);
+}
+
+.agent-widget--showcase {
+  position: static;
+  width: 100%;
+
+  .agent-widget__launcher,
+  .agent-widget__head,
+  .agent-widget__foot { display: none; }
+
+  .agent-widget__panel {
+    position: static;
+    width: auto;
+    height: auto;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    animation: none;
+  }
+
+  .agent-widget__thread { overflow: visible; padding: 0; gap: 0; }
+  .agent-widget__chips { margin-top: 0; }
+  .agent-turn { margin: 0; }
+}
+
+.agent-showcase__label {
+  margin: 40px 0 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--sa-ink-60);
+}
+
+.agent-showcase__prefill {
+  margin-top: 40px;
+  padding: 14px 16px;
+  border: 1px solid var(--sa-line);
+  border-radius: var(--sa-radius-md);
+  background: var(--sa-cream);
+
+  .agent-showcase__label { margin: 0 0 6px; }
+  p:last-child { margin: 0; font-size: 13.5px; }
+}

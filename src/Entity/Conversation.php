@@ -7,8 +7,8 @@ namespace Odiseo\SuluSiteAssistantBundle\Entity;
 use Odiseo\AiConversationalAgentBundle\Bridge\Doctrine\Model\Conversation as CoreConversation;
 
 /**
- * An agent session as the site sees it. Locale and webspace are set on creation; the activity
- * columns are kept by ConversationActivity with bulk updates, so a running turn keeps its version.
+ * Locale and webspace are set on creation; the activity columns are kept by ConversationActivity
+ * with bulk updates, so a running turn keeps its version. Mapping in config/doctrine.
  */
 class Conversation extends CoreConversation implements ConversationInterface
 {
@@ -22,9 +22,7 @@ class Conversation extends CoreConversation implements ConversationInterface
 
     protected int $turnCount = 0;
 
-    protected ?\DateTimeImmutable $handoffShownAt = null;
-
-    protected ?\DateTimeImmutable $handoffClickedAt = null;
+    protected ?\DateTimeImmutable $contactOpenedAt = null;
 
     public function getLocale(): ?string
     {
@@ -61,13 +59,8 @@ class Conversation extends CoreConversation implements ConversationInterface
         return $this->turnCount;
     }
 
-    public function getHandoffShownAt(): ?\DateTimeImmutable
+    public function getContactOpenedAt(): ?\DateTimeImmutable
     {
-        return $this->handoffShownAt;
-    }
-
-    public function getHandoffClickedAt(): ?\DateTimeImmutable
-    {
-        return $this->handoffClickedAt;
+        return $this->contactOpenedAt;
     }
 }

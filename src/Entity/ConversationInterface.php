@@ -6,6 +6,7 @@ namespace Odiseo\SuluSiteAssistantBundle\Entity;
 
 use Odiseo\AiConversationalAgentBundle\Bridge\Doctrine\Model\ConversationInterface as CoreConversationInterface;
 
+/** An agent session as the site sees it. */
 interface ConversationInterface extends CoreConversationInterface
 {
     public function getLocale(): ?string;
@@ -16,13 +17,14 @@ interface ConversationInterface extends CoreConversationInterface
 
     public function setWebspaceKey(?string $webspaceKey): void;
 
+    /** The visitor's first message, cut to a line, for the lists. */
     public function getFirstMessage(): ?string;
 
+    /** The page the visitor was on at their latest message. */
     public function getLastPage(): ?string;
 
     public function getTurnCount(): int;
 
-    public function getHandoffShownAt(): ?\DateTimeImmutable;
-
-    public function getHandoffClickedAt(): ?\DateTimeImmutable;
+    /** When the visitor first opened a contact link from a handoff card. */
+    public function getContactOpenedAt(): ?\DateTimeImmutable;
 }

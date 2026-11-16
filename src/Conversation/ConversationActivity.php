@@ -44,14 +44,9 @@ final class ConversationActivity
         });
     }
 
-    public function handoffShown(string $sessionId): void
+    public function contactOpened(string $sessionId): void
     {
-        $this->stamp($sessionId, 'handoffShownAt');
-    }
-
-    public function handoffClicked(string $sessionId): void
-    {
-        $this->stamp($sessionId, 'handoffClickedAt');
+        $this->stamp($sessionId, 'contactOpenedAt');
     }
 
     /** Sets the timestamp the first time only. */

@@ -1,0 +1,89 @@
+.handoff {
+    max-width: 900px;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 20px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.state {
+    padding: 2px 10px;
+    border-radius: 12px;
+    background: #eee;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.state_requested {
+    background: #fff3d6;
+    color: #8a5a00;
+}
+
+.state_taken {
+    background: #e8f1fb;
+    color: #0b4f8a;
+}
+
+.state_resolved {
+    background: #e3f5e8;
+    color: #1d6b34;
+}
+
+.state_failed {
+    background: #fde8e8;
+    color: #a12222;
+}
+
+.heading {
+    margin: 32px 0 12px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px 24px;
+    margin: 0;
+}
+
+.fact {
+    dt {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #999;
+    }
+
+    dd {
+        margin: 2px 0 0;
+        overflow-wrap: anywhere;
+    }
+}
+
+.summary {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #0b6ab8;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.empty {
+    color: #999;
+}

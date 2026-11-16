@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="{{ app.request.locale }}">
+<head>
+    <meta charset="utf-8">
+    <title>{{ content.title }}</title>
+</head>
+<body>
+    <main>
+        <h1>{{ content.title }}</h1>
+        <p>{{ content.intro|default('') }}</p>
+        {% for section in content.sections|default([]) %}
+            <h2>{{ section.heading }}</h2>
+            {{ section.body|raw }}
+        {% endfor %}
+    </main>
+    {{ site_assistant_widget() }}
+</body>
+</html>

@@ -1,0 +1,3 @@
+# The agent's routes, on the website kernel only (Sulu loads *_website files there).
+odiseo_sulu_site_assistant:
+    resource: "@OdiseoSuluSiteAssistantBundle/config/routes/website.yaml"

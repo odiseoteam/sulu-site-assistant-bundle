@@ -6,8 +6,9 @@ use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
 
 $finder = (new Finder())
-    ->in(__DIR__)
-    ->exclude(['vendor', 'node_modules', 'public']);
+    ->in([__DIR__ . '/src', __DIR__ . '/config', __DIR__ . '/tests'])
+    ->exclude(['Application/var'])
+    ->append([__DIR__ . '/.php-cs-fixer.dist.php']);
 
 return (new Config())
     ->setRiskyAllowed(true)

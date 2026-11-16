@@ -1,6 +1,6 @@
 {
     "name": "sulu-site-assistant-bundle",
-    "description": "Admin views of the Sulu site assistant: conversation transcript and statistics.",
+    "description": "Admin views of the Sulu site assistant: statistics, conversations, handoffs, rules and knowledge with versions.",
     "license": "MIT",
     "main": "index.js",
     "peerDependencies": {

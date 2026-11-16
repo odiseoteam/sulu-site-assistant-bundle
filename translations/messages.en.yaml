@@ -2,14 +2,18 @@ odiseo_sulu_site_assistant:
     widget:
         launcher: 'Ask us'
         dialog_label: 'Site assistant'
-        title: 'Assistant'
         close: 'Close'
         expand: 'Expand'
         collapse: 'Collapse'
         send: 'Send'
+        new_chat: 'New conversation'
+        jump: 'Go to the latest message'
         welcome:
             title: 'How can we help?'
             body: 'Ask about what we do, how we work or anything on this site. The answers come from our own pages.'
+        nudge:
+            text: 'Questions? Ask us here.'
+            close: 'Dismiss'
         input:
             label: 'Your message'
             placeholder: 'Ask a question'
@@ -21,6 +25,7 @@ odiseo_sulu_site_assistant:
         pros: 'Pros'
         cons: 'Cons'
         best_for: 'Best for'
+        sources: 'From'
         retry: 'Try again'
         carousel:
             prev: 'Previous'
@@ -28,26 +33,64 @@ odiseo_sulu_site_assistant:
         comparison:
             compared_on: 'Compared on'
         handoff:
-            summary: 'What we understood'
-            route:
-                page: 'Contact us'
-                email: 'Write to us'
-                booking: 'Book a call'
+            title: 'We passed this on to the team'
+            choose: 'How would you like to go on?'
+            reference: 'Reference'
+            message: 'Hi! My reference is %reference%.'
+            leave_contact: 'Leave an email or a phone number in the chat and the team will reach out.'
+            team_open: 'The team will get in touch during working hours.'
+            team_closed: 'We are closed now: the team will get in touch on the next working day.'
+            phone: 'We will call you at %phone%.'
+            failed: 'We could not pass this on right now. You can reach the team here:'
+            path:
+                visitor_writes: 'I will write to you'
+                team_contact: 'Contact me'
+            heading:
+                visitor_writes: 'Write to us with your reference'
+                team_contact: 'The team will contact you'
+            text:
+                visitor_writes: 'The team sees your case as soon as you write, with the reference already in the message.'
     tool:
         search_content: 'Searching the site…'
         get_content: 'Reading the page…'
+        search_knowledge: 'Checking how we work…'
+        request_handoff: 'Passing it to the team…'
         recall_memories: 'Remembering what you told me…'
         save_memory: 'Saving that for next time…'
-        load_skill: 'Loading…'
+        load_skill: 'Thinking it through…'
         presenting: 'Preparing the answer…'
     error:
+        closed:
+            text: 'You can still reach the team directly:'
         js:
             connection_lost: 'Connection lost. Try again.'
             unavailable: "The assistant isn't available right now."
+            unanswered: 'This question was not answered.'
         http:
             too_many_sessions: 'Too many chats from this connection. Please try later.'
             too_many_messages: 'Too many messages in a short time. Please try again shortly.'
             empty_message: 'The message is empty.'
             not_configured: 'The assistant is not configured yet.'
             turn_failed: 'Something went wrong on our side. Please try again in a moment.'
-            budget_exceeded: 'The assistant has reached its limit for now. Please get in touch directly.'
+            budget_exceeded: 'The assistant has reached its limit for now.'
+            not_found: "The assistant isn't available right now."
+        limit:
+            session: 'This conversation has reached its limit.'
+            client: 'You have reached the limit for today.'
+            day: 'The assistant has reached its limit for today.'
+            month: 'The assistant has reached its limit for this month.'
+    email:
+        handoff:
+            subject: 'New case %reference%: %topic%'
+            title: 'Case %reference%'
+            intro: 'A visitor asked the site assistant to be contacted by the team.'
+            reference: 'Reference'
+            topic: 'Topic'
+            name: 'Name'
+            email: 'Email'
+            phone: 'Phone'
+            page: 'Page'
+            language: 'Language'
+            summary: 'What the visitor needs'
+            open: 'Open the case in the admin'
+            footer: 'Reply to this email to answer the visitor directly.'

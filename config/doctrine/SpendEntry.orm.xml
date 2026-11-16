@@ -4,5 +4,5 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\SpendEntry" table="sa_spend_entry" />
+    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\SpendEntry" table="odiseo_site_assistant_spend_entry" />
 </doctrine-mapping>

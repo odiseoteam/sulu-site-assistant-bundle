@@ -1,0 +1,22 @@
+[
+    {
+        "id": "knowledge-001-terms-from-the-knowledge",
+        "priority": "critical",
+        "difficulty": "easy",
+        "tags": [
+            "knowledge"
+        ],
+        "turns": [
+            "How is a project billed?"
+        ],
+        "expected": {
+            "calls_tool": [
+                "search_knowledge"
+            ],
+            "never_calls": [
+                "request_handoff"
+            ],
+            "rubric": "PASS if it says projects are billed monthly against the hours worked, as search_knowledge returned. FAIL if it states terms the results do not contain."
+        }
+    }
+]

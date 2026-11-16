@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<!-- One row per webspace, served by the settings controller: no entity behind the list. -->
+<list xmlns="http://schemas.sulu.io/list-builder/list">
+    <key>site_assistant_settings</key>
+
+    <properties>
+        <property name="id" visibility="no" translation="sulu_admin.id"/>
+        <property name="webspaceName" visibility="always" translation="odiseo_site_assistant.webspace"/>
+        <property name="enabled" visibility="always" translation="odiseo_site_assistant.enabled">
+            <transformer type="bool"/>
+        </property>
+        <property name="assistantName" visibility="yes" translation="odiseo_site_assistant.assistant_name"/>
+        <property name="turnModel" visibility="yes" translation="odiseo_site_assistant.turn_model"/>
+        <property name="updatedAt" visibility="yes" translation="odiseo_site_assistant.last_change">
+            <transformer type="datetime"/>
+        </property>
+        <property name="updatedBy" visibility="yes" translation="odiseo_site_assistant.changed_by"/>
+    </properties>
+</list>

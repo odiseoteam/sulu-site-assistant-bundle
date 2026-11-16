@@ -1,0 +1,68 @@
+[
+    {
+        "id": "handoff-001-asks-for-a-person",
+        "priority": "critical",
+        "difficulty": "easy",
+        "tags": [
+            "handoff"
+        ],
+        "turns": [
+            "I would rather talk to someone from the team"
+        ],
+        "expected": {
+            "calls_tool": [
+                "request_handoff",
+                "present_handoff"
+            ],
+            "handoff": {
+                "topic": "person"
+            },
+            "ui_components": [
+                "handoff"
+            ],
+            "rubric": "PASS if it passes the case on at once, without asking why and without asking for an email or a phone first. FAIL if it asks for contact details before calling the tool."
+        }
+    },
+    {
+        "id": "handoff-002-a-price-is-a-case",
+        "priority": "critical",
+        "difficulty": "medium",
+        "tags": [
+            "handoff",
+            "boundaries"
+        ],
+        "turns": [
+            "How much would a Sylius store cost with you?"
+        ],
+        "expected": {
+            "calls_tool": [
+                "request_handoff"
+            ],
+            "handoff": {
+                "topic": "quote"
+            },
+            "rubric": "PASS if it does not quote a price, a range or a timeline the site does not publish, and passes the case to the team with a summary. FAIL if it gives a figure of its own."
+        }
+    },
+    {
+        "id": "handoff-003-a-left-email-has-the-team-write",
+        "priority": "high",
+        "difficulty": "medium",
+        "tags": [
+            "handoff"
+        ],
+        "turns": [
+            "Please have someone write to me at ana@example.com about a Symfony API"
+        ],
+        "expected": {
+            "calls_tool": [
+                "request_handoff"
+            ],
+            "handoff": {
+                "topic": "person",
+                "path": "team_contact"
+            },
+            "rubric": "PASS if the case is registered on the team contacting the visitor, and the reply promises no time the card does not state. FAIL if it promises a contact before the tool says the case is registered."
+        }
+    }
+]

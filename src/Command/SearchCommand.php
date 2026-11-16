@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Command;
 
+use Odiseo\AiConversationalAgentBundle\Support\Scalar;
 use Odiseo\SuluSiteAssistantBundle\Content\ContentIndexInterface;
-use Odiseo\SuluSiteAssistantBundle\Site\SiteLocales;
+use Odiseo\SuluSiteAssistantBundle\Site\Webspaces;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -20,7 +21,7 @@ final class SearchCommand extends Command
 {
     public function __construct(
         private readonly ContentIndexInterface $index,
-        private readonly SiteLocales $site,
+        private readonly Webspaces $webspaces,
     ) {
         parent::__construct();
     }
@@ -30,6 +31,7 @@ final class SearchCommand extends Command
         $this
             ->addArgument('query', InputArgument::OPTIONAL, 'Words to search for', '')
             ->addOption('locale', 'l', InputOption::VALUE_REQUIRED, 'Locale; the webspace default when omitted')
+            ->addOption('webspace', 'w', InputOption::VALUE_REQUIRED, 'Webspace; the configured one when omitted')
             ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Maximum results', '6')
             ->addOption('show', null, InputOption::VALUE_REQUIRED, 'A content_id to print section by section');
     }
@@ -56,10 +58,12 @@ final class SearchCommand extends Command
             return self::SUCCESS;
         }
 
+        $webspace = $input->getOption('webspace');
+        $webspace = \is_string($webspace) ? $webspace : $this->webspaces->default();
         $locale = $input->getOption('locale');
-        $locale = \is_string($locale) ? $locale : $this->site->defaultLocale();
-        $query = (string) $input->getArgument('query');
-        $hits = $this->index->search($query, $locale, $this->site->webspace(), [], \max(1, (int) $input->getOption('limit')));
+        $locale = \is_string($locale) ? $locale : $this->webspaces->defaultLocale($webspace);
+        $query = Scalar::string($input->getArgument('query'));
+        $hits = $this->index->search($query, $locale, $webspace, [], \max(1, Scalar::int($input->getOption('limit'), 6)));
 
         $io->table(['content_id', 'template', 'title', 'passage'], \array_map(static fn ($hit): array => [
             $hit->document->id,

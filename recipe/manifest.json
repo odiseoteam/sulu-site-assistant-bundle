@@ -1,0 +1,19 @@
+{
+    "bundles": {
+        "Odiseo\\SuluSiteAssistantBundle\\OdiseoSuluSiteAssistantBundle": ["all"]
+    },
+    "copy-from-recipe": {
+        "config/": "%CONFIG_DIR%/"
+    },
+    "env": {
+        "#1": "The model's key; a webspace can save its own in the admin",
+        "ANTHROPIC_API_KEY": ""
+    },
+    "post-install-output": [
+        "  * Register <comment>OdiseoAiConversationalAgentBundle</comment> and <comment>AiBundle</comment> before this bundle",
+        "  * Run <comment>bin/adminconsole doctrine:migrations:migrate</comment>",
+        "  * Build the index: <comment>bin/websiteconsole cmsig:seal:reindex --index=site_assistant</comment>",
+        "  * Put <comment>{{ site_assistant_widget() }}</comment> in your base template",
+        "  * Add the admin views to <comment>assets/admin</comment>: see the bundle's doc/installation.md"
+    ]
+}

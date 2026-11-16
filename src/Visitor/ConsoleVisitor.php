@@ -4,24 +4,35 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Visitor;
 
-use Odiseo\AiConversationalAgentBundle\Host\ConsoleEnvironment;
-use Odiseo\SuluSiteAssistantBundle\Site\SiteLocales;
+use Odiseo\AiConversationalAgentBundle\Host\ConsoleEnvironmentInterface;
+use Odiseo\SuluSiteAssistantBundle\Site\CurrentWebspace;
+use Odiseo\SuluSiteAssistantBundle\Site\Webspaces;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-/** `agent:chat` talks as a visitor on the site's default locale, like the widget would. */
-final class ConsoleVisitor implements ConsoleEnvironment
+/**
+ * `agent:chat` and `agent:eval` talk as a visitor on the default webspace and its default
+ * locale, as the widget would. A case may name another locale or page before it runs.
+ */
+final class ConsoleVisitor implements ConsoleEnvironmentInterface
 {
     public function __construct(
         private readonly RequestStack $requestStack,
-        private readonly SiteLocales $site,
+        private readonly Webspaces $webspaces,
     ) {
     }
 
-    public function prepare(): void
+    public function prepare(?string $locale = null, ?string $webspace = null): void
     {
+        $webspace = $this->webspaces->has($webspace) ? $webspace : $this->webspaces->default();
         $request = Request::create('/');
-        $request->headers->set(VisitorContext::LOCALE_HEADER, $this->site->defaultLocale());
+        if (null !== $webspace) {
+            $request->headers->set(CurrentWebspace::HEADER, $webspace);
+        }
+        $request->headers->set(VisitorContext::LOCALE_HEADER, $locale ?? $this->webspaces->defaultLocale($webspace));
+
+        while (null !== $this->requestStack->pop()) {
+        }
         $this->requestStack->push($request);
     }
 }

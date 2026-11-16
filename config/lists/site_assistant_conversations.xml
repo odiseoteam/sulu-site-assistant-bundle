@@ -19,7 +19,7 @@
             <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
         </property>
 
-        <property name="turnCount" visibility="always" translation="odiseo_site_assistant.turns" sortable="true">
+        <property name="turnCount" visibility="always" translation="odiseo_site_assistant.messages" sortable="true">
             <field-name>turnCount</field-name>
             <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
         </property>
@@ -29,19 +29,18 @@
             <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
         </property>
 
-        <property name="handoffShownAt" visibility="yes" translation="odiseo_site_assistant.handoff_shown" sortable="true">
-            <field-name>handoffShownAt</field-name>
+        <property name="webspaceKey" visibility="no" translation="odiseo_site_assistant.webspace" sortable="true">
+            <field-name>webspaceKey</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
+        </property>
+
+        <property name="contactOpenedAt" visibility="yes" translation="odiseo_site_assistant.contact_opened" sortable="true">
+            <field-name>contactOpenedAt</field-name>
             <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
             <transformer type="datetime"/>
         </property>
 
-        <property name="handoffClickedAt" visibility="yes" translation="odiseo_site_assistant.handoff_clicked" sortable="true">
-            <field-name>handoffClickedAt</field-name>
-            <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
-            <transformer type="datetime"/>
-        </property>
-
-        <property name="lastPage" visibility="no" translation="odiseo_site_assistant.last_page" searchability="yes">
+        <property name="lastPage" visibility="yes" translation="odiseo_site_assistant.last_page" searchability="yes">
             <field-name>lastPage</field-name>
             <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
         </property>
@@ -51,5 +50,6 @@
             <entity-name>%odiseo_sulu_site_assistant.model.conversation.class%</entity-name>
             <transformer type="datetime"/>
         </property>
+
     </properties>
 </list>

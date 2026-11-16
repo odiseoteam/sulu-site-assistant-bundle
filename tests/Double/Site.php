@@ -4,15 +4,19 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Tests\Double;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Odiseo\AiConversationalAgentBundle\Capability\Limits;
 use Odiseo\AiConversationalAgentBundle\Capability\ToolContext;
 use Odiseo\AiConversationalAgentBundle\Fencing\Fence;
+use Odiseo\AiConversationalAgentBundle\Session\CurrentSession;
 use Odiseo\AiConversationalAgentBundle\Session\SessionContext;
 use Odiseo\AiConversationalAgentBundle\Session\TurnState;
 use Odiseo\SuluSiteAssistantBundle\Content\ContentDocument;
 use Odiseo\SuluSiteAssistantBundle\Content\ContentSection;
+use Odiseo\SuluSiteAssistantBundle\Entity\Conversation;
+use Odiseo\SuluSiteAssistantBundle\Site\CurrentWebspace;
 use Odiseo\SuluSiteAssistantBundle\Site\PageUrlResolver;
-use Odiseo\SuluSiteAssistantBundle\Site\SiteLocales;
+use Odiseo\SuluSiteAssistantBundle\Site\Webspaces;
 use Odiseo\SuluSiteAssistantBundle\Visitor\VisitorContext;
 use PHPUnit\Framework\TestCase;
 use Sulu\Component\Localization\Localization;
@@ -34,8 +38,11 @@ final class Site
         $webspace->addLocalization(new Localization('es'));
         $webspace->setDefaultLocalization($en);
 
+        /** @var WebspaceManagerInterface&\PHPUnit\Framework\MockObject\Stub $manager */
         $manager = (new \ReflectionMethod($test, 'createStub'))->invoke($test, WebspaceManagerInterface::class);
-        $manager->method('findWebspaceByKey')->willReturn($webspace);
+        $manager->method('findWebspaceByKey')->willReturnCallback(static fn (?string $key): ?Webspace => 'site' === $key ? $webspace : null);
+        $collection = new \Sulu\Component\Webspace\Manager\WebspaceCollection(['site' => $webspace]);
+        $manager->method('getWebspaceCollection')->willReturn($collection);
         $manager->method('findUrlByResourceLocator')->willReturnCallback(
             static fn (?string $slug, ?string $env, string $locale): string => 'https://example.test/' . $locale . $slug,
         );
@@ -43,9 +50,17 @@ final class Site
         return $manager;
     }
 
-    public static function locales(TestCase $test): SiteLocales
+    public static function locales(TestCase $test): Webspaces
     {
-        return new SiteLocales(self::webspaces($test), 'site');
+        return new Webspaces(self::webspaces($test), 'site');
+    }
+
+    public static function current(TestCase $test, RequestStack $stack): CurrentWebspace
+    {
+        /** @var EntityManagerInterface $em */
+        $em = (new \ReflectionMethod($test, 'createStub'))->invoke($test, EntityManagerInterface::class);
+
+        return new CurrentWebspace(self::locales($test), $stack, new CurrentSession(), $em, Conversation::class);
     }
 
     public static function urls(TestCase $test): PageUrlResolver
@@ -60,7 +75,7 @@ final class Site
         $stack = new RequestStack();
         $stack->push($request);
 
-        return new VisitorContext($stack, self::locales($test), 'secret');
+        return new VisitorContext($stack, self::locales($test), self::current($test, $stack), 'secret');
     }
 
     public static function context(?TurnState $state = null): ToolContext

@@ -2,5 +2,8 @@
 /node_modules/
 /composer.lock
 /package-lock.json
+/var/
 /.phpunit.cache/
 /.php-cs-fixer.cache
+/.deptrac.cache
+/tests/Application/var/

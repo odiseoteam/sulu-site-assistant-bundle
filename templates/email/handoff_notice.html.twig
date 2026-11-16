@@ -1,0 +1,31 @@
+{# The email the team gets for a case on the team_contact path. Override it in
+   templates/bundles/OdiseoSuluSiteAssistantBundle/email/handoff_notice.html.twig. #}
+{% set prefix = 'odiseo_sulu_site_assistant.email.handoff.' %}
+{% set locale = notice_locale %}
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<body style="font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; color: #1f2933; line-height: 1.5;">
+    <h1 style="font-size: 20px;">{{ (prefix ~ 'title')|trans({'%reference%': handoff.reference}, 'messages', locale) }}</h1>
+
+    <p>{{ (prefix ~ 'intro')|trans({}, 'messages', locale) }}</p>
+
+    <table cellpadding="6" style="border-collapse: collapse;">
+        <tr><th align="left">{{ (prefix ~ 'reference')|trans({}, 'messages', locale) }}</th><td><code>{{ handoff.reference }}</code></td></tr>
+        <tr><th align="left">{{ (prefix ~ 'topic')|trans({}, 'messages', locale) }}</th><td>{{ ('odiseo_site_assistant.handoff_topic.' ~ handoff.topic)|trans({}, 'admin', locale) }}</td></tr>
+        {% if handoff.contactName %}<tr><th align="left">{{ (prefix ~ 'name')|trans({}, 'messages', locale) }}</th><td>{{ handoff.contactName }}</td></tr>{% endif %}
+        {% if handoff.contactEmail %}<tr><th align="left">{{ (prefix ~ 'email')|trans({}, 'messages', locale) }}</th><td><a href="mailto:{{ handoff.contactEmail }}">{{ handoff.contactEmail }}</a></td></tr>{% endif %}
+        {% if handoff.contactPhone %}<tr><th align="left">{{ (prefix ~ 'phone')|trans({}, 'messages', locale) }}</th><td><a href="tel:{{ handoff.contactPhone|replace({' ': ''}) }}">{{ handoff.contactPhone }}</a></td></tr>{% endif %}
+        {% if handoff.page %}<tr><th align="left">{{ (prefix ~ 'page')|trans({}, 'messages', locale) }}</th><td>{{ handoff.page }}</td></tr>{% endif %}
+        {% if handoff.locale %}<tr><th align="left">{{ (prefix ~ 'language')|trans({}, 'messages', locale) }}</th><td>{{ handoff.locale }}</td></tr>{% endif %}
+    </table>
+
+    <h2 style="font-size: 16px;">{{ (prefix ~ 'summary')|trans({}, 'messages', locale) }}</h2>
+    <p style="white-space: pre-line;">{{ handoff.summary }}</p>
+
+    {% if handoff_url %}
+        <p><a href="{{ handoff_url }}">{{ (prefix ~ 'open')|trans({}, 'messages', locale) }}</a></p>
+    {% endif %}
+
+    <p style="color: #6b7280; font-size: 13px;">{{ (prefix ~ 'footer')|trans({}, 'messages', locale) }}</p>
+</body>
+</html>

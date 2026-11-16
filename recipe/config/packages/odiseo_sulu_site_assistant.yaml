@@ -1,0 +1,16 @@
+# See vendor/odiseoteam/sulu-site-assistant-bundle/doc/configuration.md
+odiseo_sulu_site_assistant:
+    identity:
+        brand_name: 'Example'
+        assistant_name: 'the Example assistant'
+    sessions:
+        timezone: 'UTC'
+    content:
+        excluded_templates: []
+        types: {}
+    contact:
+        links:
+            email: { label: 'hello@example.com', url: 'mailto:hello@example.com' }
+    handoff:
+        routes:
+            - { paths: [visitor_writes] }

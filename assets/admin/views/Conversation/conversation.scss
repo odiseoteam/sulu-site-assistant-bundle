@@ -89,3 +89,33 @@
 .empty {
     color: #999;
 }
+
+.handoffs {
+    margin: 0;
+    padding-left: 18px;
+
+    li {
+        margin-bottom: 6px;
+    }
+}
+
+.link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #0b6ab8;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.pages {
+    margin: 4px 0 0;
+    padding-left: 18px;
+    font-weight: 400;
+}
+
+.note {
+    color: #777;
+}
