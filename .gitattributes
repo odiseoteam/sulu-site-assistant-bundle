@@ -1,0 +1,15 @@
+# What a site installs: the bundle, not its development tooling.
+/.docker export-ignore
+/.github export-ignore
+/tests export-ignore
+/compose.yml export-ignore
+/Makefile export-ignore
+/phpunit.xml.dist export-ignore
+/phpstan.neon.dist export-ignore
+/deptrac.yaml export-ignore
+/composer-dependency-analyser.php export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/vitest.config.js export-ignore
+/package.json export-ignore
+/.editorconfig export-ignore
+/recipe export-ignore

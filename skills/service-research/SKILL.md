@@ -1,6 +1,6 @@
 ---
 name: service-research
-description: Teaching a visitor what to weigh before any option appears, when they ask what matters in a kind of work, how two approaches differ, or where to start. Not needed once they have named what they want (site-discovery), nor when they are ready to talk to a person (lead-qualification).
+description: 'Teaching a visitor what to weigh before any option appears, when they ask what matters in a kind of work, how two approaches differ, or where to start. Not needed once they have named what they want (site-discovery), nor when they are ready to talk to a person (lead-qualification).'
 ---
 
 # Service research
@@ -15,11 +15,11 @@ One question, only if the answer would change the criteria themselves rather tha
 
 Every criterion you name comes from a page you retrieved. The organisation's own way of framing the work is the point — a generic checklist from your own knowledge is exactly what the visitor could have got anywhere.
 
-Search and read before you explain, and keep to what the retrieved pages actually support. Link the pages you drew on.
+Search and read before you explain (`search_content`, and `search_knowledge` for how the organisation works), and keep to what the retrieved results actually support. Link the pages you drew on.
 
 ## Shape
 
-- Three to five criteria, each in a couple of sentences, ordered by how much they change the decision.
+- Three to five criteria, each in a couple of sentences, ordered by how much they change the decision. `present_guide` shows them as a card when they read better as steps.
 - Where the organisation has a stated position on a criterion, give it as its position, not as a fact about the world.
 - Close by naming which criterion usually decides it, and offer to look at the options against that one.
 

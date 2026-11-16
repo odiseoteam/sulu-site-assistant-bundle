@@ -1,6 +1,15 @@
 parameters:
-    level: 8
+    level: max
     paths:
         - src
         - config
         - tests
+    excludePaths:
+        # The test application is a site, not the bundle: Sulu's own conventions apply there.
+        - tests/Application/*
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # Tests read decoded JSON a level deep and let the assertion fail when the shape is wrong.
+        -
+            identifiers: [offsetAccess.nonOffsetAccessible, argument.type, cast.string]
+            path: tests/*

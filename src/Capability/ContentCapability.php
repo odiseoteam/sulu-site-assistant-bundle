@@ -4,29 +4,31 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Capability;
 
-use Odiseo\AiConversationalAgentBundle\Capability\Capability;
 use Odiseo\AiConversationalAgentBundle\Capability\PromptFragment;
 use Odiseo\AiConversationalAgentBundle\Capability\PromptSection;
+use Odiseo\AiConversationalAgentBundle\Capability\ScopeArea;
+use Odiseo\AiConversationalAgentBundle\Capability\ScopedCapabilityInterface;
 use Odiseo\AiConversationalAgentBundle\Capability\ToolContext;
 use Odiseo\AiConversationalAgentBundle\Capability\ToolSpec;
 use Odiseo\AiConversationalAgentBundle\Grounding\GroundingRule;
 use Odiseo\AiConversationalAgentBundle\Grounding\Matcher;
 use Odiseo\AiConversationalAgentBundle\Session\TurnState;
 use Odiseo\AiConversationalAgentBundle\Streaming\ToolOutcome;
+use Odiseo\SuluSiteAssistantBundle\Config\SiteAssistantConfig;
 use Odiseo\SuluSiteAssistantBundle\Content\ContentDocument;
 use Odiseo\SuluSiteAssistantBundle\Content\ContentIndexInterface;
 use Odiseo\SuluSiteAssistantBundle\Site\PageUrlResolver;
-use Odiseo\SuluSiteAssistantBundle\Site\SiteLocales;
-use Odiseo\SuluSiteAssistantBundle\SiteAssistantConfig;
+use Odiseo\SuluSiteAssistantBundle\Site\Webspaces;
 use Odiseo\SuluSiteAssistantBundle\Visitor\VisitorContext;
 
 /**
  * Searching and reading what the site publishes. Everything returned enters the session's
- * provenance, so cards and the handoff can only name pages the conversation has seen.
+ * provenance, so cards and links can only name pages the conversation has seen.
  */
-final class ContentCapability implements Capability
+final class ContentCapability implements ScopedCapabilityInterface
 {
     public const SEARCH = 'search_content';
+
     public const READ = 'get_content';
 
     private const READ_CHARS = 9000;
@@ -35,7 +37,7 @@ final class ContentCapability implements Capability
         private readonly ContentIndexInterface $index,
         private readonly PageUrlResolver $urls,
         private readonly VisitorContext $visitor,
-        private readonly SiteLocales $site,
+        private readonly Webspaces $webspaces,
         private readonly SiteAssistantConfig $config,
     ) {
     }
@@ -43,6 +45,11 @@ final class ContentCapability implements Capability
     public function name(): string
     {
         return 'content';
+    }
+
+    public function scopeArea(): ScopeArea
+    {
+        return new ScopeArea('what the organisation offers and publishes', 0);
     }
 
     public function tools(): array
@@ -54,8 +61,9 @@ final class ContentCapability implements Capability
         if ([] !== $this->config->contentTypes) {
             $search['type'] = ['type' => 'string', 'enum' => \array_keys($this->config->contentTypes), 'description' => 'Only pages of this kind.'];
         }
-        if (\count($this->site->locales()) > 1) {
-            $search['locale'] = ['type' => 'string', 'enum' => $this->site->locales(), 'description' => 'Language of the pages; the visitor\'s page language when omitted.'];
+        $locales = $this->allLocales();
+        if (\count($locales) > 1) {
+            $search['locale'] = ['type' => 'string', 'enum' => $locales, 'description' => 'Language of the pages; the visitor\'s page language when omitted.'];
         }
 
         return [
@@ -89,7 +97,7 @@ final class ContentCapability implements Capability
         $fragments = [
             new PromptFragment(
                 PromptSection::HowYouWork,
-                '- Ground every statement about what this organisation offers, how it works, what it has done and its terms in a search_content or get_content result from this conversation. When the site does not cover something, say it has not published that and offer to put the visitor in touch; do not fill the gap from general knowledge.',
+                '- Ground every statement about what this organisation offers, how it works and what it has done in a search_content or get_content result from this conversation. When the site does not cover something, say it has not published that and offer to put the visitor in touch; do not fill the gap from general knowledge.',
                 priority: 10,
             ),
             new PromptFragment(
@@ -105,8 +113,8 @@ final class ContentCapability implements Capability
                 priority: 11,
             );
         }
-        if ('' !== $this->config->searchNotes) {
-            $fragments[] = new PromptFragment(PromptSection::Tools, '- ' . $this->config->searchNotes, priority: 12);
+        if ('' !== \trim($this->config->searchNotes)) {
+            $fragments[] = new PromptFragment(PromptSection::Tools, '- ' . \trim($this->config->searchNotes), priority: 12);
         }
 
         return $fragments;
@@ -117,7 +125,7 @@ final class ContentCapability implements Capability
         return [new GroundingRule(
             'content',
             self::SEARCH,
-            fn (string $text, TurnState $state): ?array => Matcher::matchesTermsAndCues($text, $this->config->groundingTerms, $this->config->groundingCues)
+            fn (string $text, TurnState $state): ?array => Matcher::matchesTermsAndCues($text, $this->config->contentTerms, $this->config->contentCues)
                 ? ['query' => $text]
                 : null,
             static fn (array $input): string => \sprintf('Site pages matching this question, fetched by the host (the same data a %s call returns):', self::SEARCH),
@@ -141,16 +149,15 @@ final class ContentCapability implements Capability
     /** @param array<string, mixed> $input */
     private function search(array $input, ToolContext $context): ToolOutcome
     {
+        $webspace = $this->visitor->webspace();
         $query = $context->sanitize($input['query'] ?? '', 300);
         $type = \is_string($input['type'] ?? null) ? $input['type'] : null;
-        $locale = \is_string($input['locale'] ?? null) && \in_array($input['locale'], $this->site->locales(), true) ? $input['locale'] : $this->visitor->locale();
+        $locale = \is_string($input['locale'] ?? null) && \in_array($input['locale'], $this->webspaces->locales($webspace), true) ? $input['locale'] : $this->visitor->locale();
         $ceiling = \min($this->config->maxSearchResults, $context->limits->maxResultsPerCall);
         $limit = $context->clampLimit($input['limit'] ?? null, $ceiling, $ceiling);
 
-        $hits = $this->index->search($query, $locale, $this->site->webspace(), $this->config->templatesOf($type), $limit);
-
         $results = [];
-        foreach ($hits as $hit) {
+        foreach ($this->index->search($query, $locale, $webspace, $this->config->templatesOf($type), $limit) as $hit) {
             $results[] = $this->remember($context, $hit->document) + \array_filter(['passage' => $hit->passage]);
         }
 
@@ -166,7 +173,8 @@ final class ContentCapability implements Capability
     {
         $id = $context->sanitize($input['content_id'] ?? '', 200);
         $document = '' === $id ? null : $this->index->get($id);
-        if (null === $document) {
+        $webspace = $this->visitor->webspace();
+        if (null === $document || (null !== $webspace && [] !== $document->webspaces && !\in_array($webspace, $document->webspaces, true))) {
             return ToolOutcome::error(\sprintf('No page with content_id %s. Find it with search_content first.', $id));
         }
 
@@ -188,7 +196,7 @@ final class ContentCapability implements Capability
     private function remember(ToolContext $context, ContentDocument $document): array
     {
         $type = $this->config->typeOf($document->templateKey);
-        $url = $this->urls->path($document->url, $document->locale, $document->webspaces[0] ?? $this->site->webspace());
+        $url = $this->urls->path($document->url, $document->locale, $document->webspaces[0] ?? $this->visitor->webspace());
         ContentRecords::remember($context->state, $document, $type, $url);
 
         return \array_filter([
@@ -198,5 +206,16 @@ final class ContentCapability implements Capability
             'url' => $url,
             'summary' => $document->summary,
         ], static fn (string $v): bool => '' !== $v);
+    }
+
+    /** @return list<string> every locale of every webspace: the tool's schema is the same on all of them */
+    private function allLocales(): array
+    {
+        $locales = [];
+        foreach ($this->webspaces->keys() as $webspace) {
+            $locales = [...$locales, ...$this->webspaces->locales($webspace)];
+        }
+
+        return \array_values(\array_unique($locales));
     }
 }

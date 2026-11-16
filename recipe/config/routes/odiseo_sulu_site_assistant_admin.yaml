@@ -1,0 +1,4 @@
+# The admin's API, on the admin kernel only (Sulu loads *_admin files there).
+odiseo_sulu_site_assistant_api:
+    resource: "@OdiseoSuluSiteAssistantBundle/config/routes/admin.yaml"
+    prefix: /admin/api

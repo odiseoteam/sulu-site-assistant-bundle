@@ -1,0 +1,17 @@
+{# Every assistant card over the site's own pages, with no model call. No site layout: the widget
+   brings its own styles. #}
+<!DOCTYPE html>
+<html lang="{{ app.request.locale|default('en') }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Site assistant · showcase</title>
+</head>
+<body class="agent-showcase">
+    <main class="agent-showcase__page">
+        <p class="agent-showcase__kicker">Site assistant · component showcase (the site's own pages)</p>
+        {{ site_assistant_widget({showcase: showcase}) }}
+    </main>
+</body>
+</html>

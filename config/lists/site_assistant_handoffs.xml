@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+<list xmlns="http://schemas.sulu.io/list-builder/list">
+    <key>site_assistant_handoffs</key>
+
+    <properties>
+        <property name="id" visibility="no" translation="sulu_admin.id">
+            <field-name>id</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="reference" visibility="always" translation="odiseo_site_assistant.reference" searchability="yes">
+            <field-name>reference</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="createdAt" visibility="always" translation="odiseo_site_assistant.created" sortable="true">
+            <field-name>createdAt</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+            <transformer type="datetime"/>
+        </property>
+
+        <property name="state" visibility="always" translation="odiseo_site_assistant.state" sortable="true">
+            <field-name>state</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+            <filter type="select">
+                <params>
+                    <param name="options" type="collection">
+                        <param name="requested" value="odiseo_site_assistant.handoff_state.requested"/>
+                        <param name="taken" value="odiseo_site_assistant.handoff_state.taken"/>
+                        <param name="resolved" value="odiseo_site_assistant.handoff_state.resolved"/>
+                        <param name="failed" value="odiseo_site_assistant.handoff_state.failed"/>
+                    </param>
+                </params>
+            </filter>
+        </property>
+
+        <property name="topic" visibility="always" translation="odiseo_site_assistant.topic" sortable="true">
+            <field-name>topic</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="contactName" visibility="yes" translation="odiseo_site_assistant.contact_name" searchability="yes">
+            <field-name>contactName</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="contactEmail" visibility="yes" translation="odiseo_site_assistant.contact_email" searchability="yes">
+            <field-name>contactEmail</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="contactPhone" visibility="no" translation="odiseo_site_assistant.contact_phone">
+            <field-name>contactPhone</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="path" visibility="yes" translation="odiseo_site_assistant.path" sortable="true">
+            <field-name>path</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="summary" visibility="no" translation="odiseo_site_assistant.summary" searchability="yes">
+            <field-name>summary</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="webspaceKey" visibility="no" translation="odiseo_site_assistant.webspace" sortable="true">
+            <field-name>webspaceKey</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="locale" visibility="no" translation="sulu_admin.language" sortable="true">
+            <field-name>locale</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+        </property>
+
+        <property name="updatedAt" visibility="no" translation="odiseo_site_assistant.last_activity" sortable="true">
+            <field-name>updatedAt</field-name>
+            <entity-name>%odiseo_sulu_site_assistant.model.handoff.class%</entity-name>
+            <transformer type="datetime"/>
+        </property>
+
+    </properties>
+</list>

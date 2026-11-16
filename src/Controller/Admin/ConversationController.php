@@ -6,31 +6,34 @@ namespace Odiseo\SuluSiteAssistantBundle\Controller\Admin;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Odiseo\SuluSiteAssistantBundle\Admin\SiteAssistantAdmin;
+use Odiseo\SuluSiteAssistantBundle\Conversation\Transcript;
 use Odiseo\SuluSiteAssistantBundle\Entity\ConversationInterface;
+use Odiseo\SuluSiteAssistantBundle\Entity\HandoffInterface;
 use Odiseo\SuluSiteAssistantBundle\Entity\MemoryFactInterface;
-use Odiseo\SuluSiteAssistantBundle\Entity\MessageInterface;
 use Odiseo\SuluSiteAssistantBundle\Entity\SpendEntryInterface;
+use Odiseo\SuluSiteAssistantBundle\Repository\ConversationRepository;
+use Odiseo\SuluSiteAssistantBundle\Repository\HandoffRepository;
+use Odiseo\SuluSiteAssistantBundle\Settings\ModelChoices;
 use Sulu\Component\Rest\ListBuilder\Doctrine\DoctrineListBuilder;
 use Sulu\Component\Rest\ListBuilder\Doctrine\DoctrineListBuilderFactoryInterface;
 use Sulu\Component\Rest\ListBuilder\ListBuilderInterface;
 use Sulu\Component\Rest\ListBuilder\Metadata\FieldDescriptorFactoryInterface;
 use Sulu\Component\Rest\ListBuilder\PaginatedRepresentation;
-use Sulu\Component\Rest\RestHelper;
+use Sulu\Component\Rest\RestHelperInterface;
 use Sulu\Component\Security\SecuredControllerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
-/** The admin's read of the conversations: the list, one transcript, and deleting on request. */
+/**
+ * The conversations: the list, one with its transcript, memory, cases and spend, and deleting
+ * them with their messages. Read-only otherwise: integrations read the same endpoints.
+ */
 final class ConversationController implements SecuredControllerInterface
 {
-    /** Tools whose calls the transcript shows: what the assistant looked up and presented. */
-    private const VISIBLE_TOOLS = ['search_content', 'get_content', 'present_pages', 'present_comparison', 'present_handoff'];
-
     /**
      * @param class-string<ConversationInterface> $conversationClass
-     * @param class-string<MessageInterface> $messageClass
      * @param class-string<MemoryFactInterface> $memoryFactClass
      * @param class-string<SpendEntryInterface> $spendEntryClass
      */
@@ -38,10 +41,12 @@ final class ConversationController implements SecuredControllerInterface
         private readonly EntityManagerInterface $em,
         private readonly FieldDescriptorFactoryInterface $fieldDescriptorFactory,
         private readonly DoctrineListBuilderFactoryInterface $listBuilderFactory,
-        private readonly RestHelper $restHelper,
+        private readonly RestHelperInterface $restHelper,
         private readonly NormalizerInterface $normalizer,
+        private readonly ConversationRepository $conversations,
+        private readonly HandoffRepository $handoffs,
+        private readonly Transcript $transcript,
         private readonly string $conversationClass,
-        private readonly string $messageClass,
         private readonly string $memoryFactClass,
         private readonly string $spendEntryClass,
     ) {
@@ -49,20 +54,26 @@ final class ConversationController implements SecuredControllerInterface
 
     public function cgetAction(Request $request): Response
     {
-        $fieldDescriptors = $this->fieldDescriptorFactory->getFieldDescriptors(SiteAssistantAdmin::RESOURCE_KEY) ?? [];
+        $fieldDescriptors = $this->fieldDescriptorFactory->getFieldDescriptors(SiteAssistantAdmin::CONVERSATIONS_KEY) ?? [];
 
         /** @var DoctrineListBuilder $listBuilder */
         $listBuilder = $this->listBuilderFactory->create($this->conversationClass);
         $this->restHelper->initializeListBuilder($listBuilder, $fieldDescriptors);
         // A session opened without a message has nothing to read.
         $listBuilder->where($fieldDescriptors['turnCount'], 0, ListBuilderInterface::WHERE_COMPARATOR_GREATER);
+        foreach (['webspaceKey', 'locale'] as $filter) {
+            $value = $request->query->get($filter);
+            if (\is_string($value) && '' !== $value && isset($fieldDescriptors[$filter])) {
+                $listBuilder->where($fieldDescriptors[$filter], $value);
+            }
+        }
         if (null === $request->query->get('sortBy')) {
             $listBuilder->sort($fieldDescriptors['createdAt'], 'desc');
         }
 
         $representation = new PaginatedRepresentation(
             $listBuilder->execute(),
-            SiteAssistantAdmin::RESOURCE_KEY,
+            SiteAssistantAdmin::CONVERSATIONS_KEY,
             (int) $listBuilder->getCurrentPage(),
             (int) $listBuilder->getLimit(),
             (int) $listBuilder->count(),
@@ -73,8 +84,8 @@ final class ConversationController implements SecuredControllerInterface
 
     public function getAction(int $id): Response
     {
-        $conversation = $this->em->find($this->conversationClass, $id);
-        if (!$conversation instanceof ConversationInterface) {
+        $conversation = $this->conversations->find($id);
+        if (null === $conversation) {
             return new JsonResponse(null, Response::HTTP_NOT_FOUND);
         }
 
@@ -83,92 +94,49 @@ final class ConversationController implements SecuredControllerInterface
             'createdAt' => $conversation->getCreatedAt()->format(\DATE_ATOM),
             'updatedAt' => $conversation->getUpdatedAt()->format(\DATE_ATOM),
             'locale' => $conversation->getLocale(),
-            'webspace' => $conversation->getWebspaceKey(),
+            'webspaceKey' => $conversation->getWebspaceKey(),
             'firstMessage' => $conversation->getFirstMessage(),
             'lastPage' => $conversation->getLastPage(),
             'turnCount' => $conversation->getTurnCount(),
-            'handoffShownAt' => $conversation->getHandoffShownAt()?->format(\DATE_ATOM),
-            'handoffClickedAt' => $conversation->getHandoffClickedAt()?->format(\DATE_ATOM),
+            'contactOpenedAt' => $conversation->getContactOpenedAt()?->format(\DATE_ATOM),
             'spend' => $this->spend($conversation->getSessionId()),
+            'models' => $this->models($conversation->getSessionId()),
             'memory' => $this->memory($conversation->getPrincipalId()),
-            'transcript' => $this->transcript($conversation),
+            'handoffs' => \array_map(static fn (HandoffInterface $handoff): array => [
+                'id' => $handoff->getId(),
+                'reference' => $handoff->getReference(),
+                'topic' => $handoff->getTopic(),
+                'state' => $handoff->getState(),
+                'path' => $handoff->getPath(),
+                'createdAt' => $handoff->getCreatedAt()->format(\DATE_ATOM),
+            ], $this->handoffs->findByConversation($conversation)),
+            'transcript' => $this->transcript->entries($conversation),
         ]);
     }
 
     public function deleteAction(int $id): Response
     {
-        $conversation = $this->em->find($this->conversationClass, $id);
-        if ($conversation instanceof ConversationInterface) {
-            $this->em->remove($conversation);
-            $this->em->flush();
-        }
+        $this->conversations->delete([$id]);
 
         return new Response(null, Response::HTTP_NO_CONTENT);
     }
 
     public function cdeleteAction(Request $request): Response
     {
-        $ids = \array_filter(\array_map('intval', \explode(',', (string) $request->query->get('ids', ''))));
-        foreach ($ids as $id) {
-            $conversation = $this->em->find($this->conversationClass, $id);
-            if ($conversation instanceof ConversationInterface) {
-                $this->em->remove($conversation);
-            }
-        }
-        $this->em->flush();
+        $ids = \array_values(\array_filter(\array_map('intval', \explode(',', (string) $request->query->get('ids', '')))));
+        $this->conversations->delete($ids);
 
         return new Response(null, Response::HTTP_NO_CONTENT);
     }
 
     public function getSecurityContext(): string
     {
-        return SiteAssistantAdmin::SECURITY_CONTEXT;
+        return SiteAssistantAdmin::CONVERSATIONS_CONTEXT;
     }
 
     public function getLocale(Request $request): ?string
     {
         return null;
-    }
-
-    /** @return list<array{role: string, text: ?string, tools: list<array{name: string, input: mixed}>, createdAt: string}> */
-    private function transcript(ConversationInterface $conversation): array
-    {
-        /** @var list<MessageInterface> $messages */
-        $messages = $this->em->getRepository($this->messageClass)->findBy(['conversation' => $conversation], ['position' => 'ASC']);
-
-        $entries = [];
-        foreach ($messages as $message) {
-            $tools = self::tools($message->getPayload());
-            if (null === $message->getText() && [] === $tools) {
-                continue;
-            }
-            $entries[] = [
-                'role' => $message->getRole(),
-                'text' => $message->getText(),
-                'tools' => $tools,
-                'createdAt' => $message->getCreatedAt()->format(\DATE_ATOM),
-            ];
-        }
-
-        return $entries;
-    }
-
-    /**
-     * @param array<mixed> $payload
-     *
-     * @return list<array{name: string, input: mixed}>
-     */
-    private static function tools(array $payload): array
-    {
-        $tools = [];
-        foreach (\is_array($payload['content'] ?? null) ? $payload['content'] : [] as $block) {
-            $name = \is_array($block) && 'tool_use' === ($block['type'] ?? null) ? ($block['name'] ?? null) : null;
-            if (\is_string($name) && \in_array($name, self::VISIBLE_TOOLS, true)) {
-                $tools[] = ['name' => $name, 'input' => $block['input'] ?? null];
-            }
-        }
-
-        return $tools;
     }
 
     /** @return list<array{key: string, value: string, category: string, updatedAt: string}> */
@@ -185,12 +153,12 @@ final class ConversationController implements SecuredControllerInterface
         ], $facts);
     }
 
-    /** @return array{usd: float, inputTokens: int, outputTokens: int} */
+    /** @return array{usd: float, inputTokens: int, outputTokens: int, cacheReadTokens: int} */
     private function spend(string $sessionId): array
     {
-        /** @var array{usd: ?string, inputTokens: ?string, outputTokens: ?string} $row */
+        /** @var array{usd: ?string, inputTokens: ?string, outputTokens: ?string, cacheReadTokens: ?string} $row */
         $row = $this->em->createQueryBuilder()
-            ->select('SUM(s.usd) AS usd', 'SUM(s.inputTokens) AS inputTokens', 'SUM(s.outputTokens) AS outputTokens')
+            ->select('SUM(s.usd) AS usd', 'SUM(s.inputTokens) AS inputTokens', 'SUM(s.outputTokens) AS outputTokens', 'SUM(s.cacheReadTokens) AS cacheReadTokens')
             ->from($this->spendEntryClass, 's')
             ->where('s.sessionId = :session')
             ->setParameter('session', $sessionId)
@@ -201,6 +169,25 @@ final class ConversationController implements SecuredControllerInterface
             'usd' => \round((float) ($row['usd'] ?? 0), 4),
             'inputTokens' => (int) ($row['inputTokens'] ?? 0),
             'outputTokens' => (int) ($row['outputTokens'] ?? 0),
+            'cacheReadTokens' => (int) ($row['cacheReadTokens'] ?? 0),
         ];
+    }
+
+    /** @return list<string> each model the conversation used, as "Claude Haiku 5.5 (Anthropic)" */
+    private function models(string $sessionId): array
+    {
+        // Grouped with an aggregate, not DISTINCT: a list walker may append ORDER BY on the id.
+        /** @var list<array{calls: int|string, model: string}> $rows */
+        $rows = $this->em->createQueryBuilder()
+            ->select('COUNT(s.id) AS calls', 's.model AS model')
+            ->from($this->spendEntryClass, 's')
+            ->where('s.sessionId = :session')
+            ->andWhere('s.model IS NOT NULL')
+            ->groupBy('s.model')
+            ->setParameter('session', $sessionId)
+            ->getQuery()
+            ->getArrayResult();
+
+        return \array_map(static fn (array $row): string => ModelChoices::describe($row['model']), $rows);
     }
 }

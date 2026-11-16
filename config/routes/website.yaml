@@ -4,8 +4,14 @@ odiseo_ai_conversational_agent:
     resource: '@OdiseoAiConversationalAgentBundle/config/routes.yaml'
     prefix: /agent
 
-# A contact route opened from the handoff card.
-odiseo_sulu_site_assistant_handoff_click:
-    path: /agent/handoff/click
-    controller: odiseo_sulu_site_assistant.controller.handoff::click
+# A contact link opened from the handoff card.
+odiseo_sulu_site_assistant_agent_contact_link:
+    path: /agent/contact-link
+    controller: odiseo_sulu_site_assistant.controller.contact_link::opened
     methods: [POST]
+
+# Every card over the site's own pages, with no model call. Answers 404 unless showcase.enabled.
+odiseo_sulu_site_assistant_showcase:
+    path: /agent/showcase
+    controller: odiseo_sulu_site_assistant.controller.showcase::show
+    methods: [GET]

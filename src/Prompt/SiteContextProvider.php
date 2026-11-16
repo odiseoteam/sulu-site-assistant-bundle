@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Prompt;
 
-use Odiseo\AiConversationalAgentBundle\Agent\ContextProvider;
+use Odiseo\AiConversationalAgentBundle\Agent\ContextProviderInterface;
 use Odiseo\AiConversationalAgentBundle\Session\SessionContext;
 use Odiseo\AiConversationalAgentBundle\Session\TurnState;
 use Odiseo\SuluSiteAssistantBundle\Capability\ContentRecords;
@@ -15,7 +15,7 @@ use Odiseo\SuluSiteAssistantBundle\Visitor\VisitorContext;
  * visitor is on, and the pages already read so they are not searched again. Kept small: it sits
  * after the cache breakpoint.
  */
-final class SiteContextProvider implements ContextProvider
+final class SiteContextProvider implements ContextProviderInterface
 {
     private const SEEN = 20;
 

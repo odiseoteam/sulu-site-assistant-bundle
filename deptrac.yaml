@@ -1,0 +1,121 @@
+# The agent's tools work against the bundle's ports and models: they never reach Sulu, Doctrine
+# or the admin directly, so a site can swap the index, the handoff desk or a path without
+# touching them. The admin and the website surface sit on top and may use everything.
+deptrac:
+    paths:
+        - ./src
+
+    layers:
+        - name: Agent
+          collectors:
+              - type: directory
+                value: src/(Capability|Config|Prompt)/.*
+
+        - name: Ports
+          collectors:
+              - type: classNameRegex
+                value: '#^Odiseo\\SuluSiteAssistantBundle\\(Content|Handoff|Encryption|Editing)\\([A-Za-z]+\\)?[A-Za-z]+Interface$#'
+
+        - name: Model
+          collectors:
+              - type: bool
+                must:
+                    - type: directory
+                      value: src/(Model|Content|Editing)/.*
+                must_not:
+                    - type: classNameRegex
+                      value: '#\\Editing\\(?!EditableItem$|Origin$)#'
+                    - type: directory
+                      value: src/Content/Indexing/.*
+                    - type: classNameRegex
+                      value: '#(Interface|SealContentIndex)$#'
+
+        - name: Context
+          collectors:
+              - type: directory
+                value: src/(Site|Visitor)/.*
+
+        - name: Entities
+          collectors:
+              - type: directory
+                value: src/(Entity|Repository)/.*
+
+        - name: Adapters
+          collectors:
+              - type: bool
+                must:
+                    - type: directory
+                      value: src/(Content|Handoff|Encryption|Settings|Conversation|Editing|Statistics)/.*
+                must_not:
+                    - type: classNameRegex
+                      value: '#Interface$#'
+                    - type: directory
+                      value: src/Content/(ContentDocument|ContentHit|ContentSection|Text)\.php
+                    - type: directory
+                      value: src/Editing/(EditableItem|Origin)\.php
+
+        # The eval harness and the showcase build a case on both sides: the agent's and the site's.
+        - name: Harness
+          collectors:
+              - type: directory
+                value: src/(Eval|Showcase)/.*
+
+        - name: Surface
+          collectors:
+              - type: directory
+                value: src/(Admin|Controller|Twig|EventListener|Command|Doctrine|DependencyInjection)/.*
+
+        - name: Core
+          collectors:
+              - type: classNameRegex
+                value: '#^Odiseo\\AiConversationalAgentBundle\\#'
+
+        - name: Framework
+          collectors:
+              - type: classNameRegex
+                value: '#^(Sulu|Doctrine|Symfony|CmsIg|Twig|Psr)\\#'
+
+    ruleset:
+        Agent:
+            - Ports
+            - Model
+            - Context
+            - Core
+        Ports:
+            - Model
+            - Entities
+            - Core
+        Model:
+            - Core
+        Context:
+            - Entities
+            - Core
+            - Framework
+        Entities:
+            - Core
+            - Framework
+        Adapters:
+            - Ports
+            - Model
+            - Context
+            - Entities
+            - Core
+            - Framework
+        Harness:
+            - Agent
+            - Ports
+            - Model
+            - Context
+            - Adapters
+            - Core
+            - Framework
+        Surface:
+            - Agent
+            - Ports
+            - Model
+            - Context
+            - Entities
+            - Adapters
+            - Harness
+            - Core
+            - Framework

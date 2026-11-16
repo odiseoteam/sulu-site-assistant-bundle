@@ -6,9 +6,10 @@
 
     <!-- Mapped superclass: MappedSuperclassListener turns the configured model into the entity.
          The core's columns are inherited. -->
-    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\Conversation" table="sa_conversation">
+    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\Conversation" table="odiseo_site_assistant_conversation">
         <indexes>
-            <index name="idx_sa_conversation_created" columns="created_at" />
+            <index name="idx_odiseo_site_assistant_conversation_created" columns="created_at" />
+            <index name="idx_odiseo_site_assistant_conversation_webspace" columns="webspace_key,created_at" />
         </indexes>
 
         <field name="locale" column="locale" type="string" length="16" nullable="true" />
@@ -20,7 +21,6 @@
                 <option name="default">0</option>
             </options>
         </field>
-        <field name="handoffShownAt" column="handoff_shown_at" type="datetime_immutable" nullable="true" />
-        <field name="handoffClickedAt" column="handoff_clicked_at" type="datetime_immutable" nullable="true" />
+        <field name="contactOpenedAt" column="contact_opened_at" type="datetime_immutable" nullable="true" />
     </mapped-superclass>
 </doctrine-mapping>

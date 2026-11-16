@@ -1,0 +1,60 @@
+[
+    {
+        "id": "discovery-001-searches-before-answering",
+        "priority": "critical",
+        "difficulty": "easy",
+        "tags": [
+            "grounding"
+        ],
+        "turns": [
+            "Do you build marketplaces?"
+        ],
+        "expected": {
+            "calls_tool": [
+                "search_content"
+            ],
+            "rubric": "PASS if the answer is grounded in what search_content returned and links pages only with urls a tool returned. FAIL if it describes services no tool returned."
+        }
+    },
+    {
+        "id": "discovery-002-answers-in-the-page-language",
+        "priority": "high",
+        "difficulty": "easy",
+        "tags": [
+            "grounding",
+            "language"
+        ],
+        "state": {
+            "locale": "es"
+        },
+        "turns": [
+            "¿Hacen marketplaces?"
+        ],
+        "expected": {
+            "calls_tool": [
+                "search_content"
+            ],
+            "rubric": "PASS if it answers in Spanish from the Spanish pages. FAIL if it answers in English or from pages no tool returned."
+        }
+    },
+    {
+        "id": "discovery-003-shortlist",
+        "priority": "high",
+        "difficulty": "medium",
+        "tags": [
+            "presentation"
+        ],
+        "turns": [
+            "We need a new online store and an API for our app. What do you offer?"
+        ],
+        "expected": {
+            "calls_tool": [
+                "search_content"
+            ],
+            "ui_components": [
+                "pages"
+            ],
+            "rubric": "PASS if it shows the services that fit as a shortlist, each with a reason tied to what the visitor said. FAIL if it lists services the site does not publish."
+        }
+    }
+]

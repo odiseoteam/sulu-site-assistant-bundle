@@ -1,18 +1,22 @@
 odiseo_sulu_site_assistant:
     widget:
-        launcher: 'Preguntanos'
+        launcher: 'Consultanos'
         dialog_label: 'Asistente del sitio'
-        title: 'Asistente'
         close: 'Cerrar'
         expand: 'Ampliar'
         collapse: 'Reducir'
         send: 'Enviar'
+        new_chat: 'Nueva conversación'
+        jump: 'Ir al último mensaje'
         welcome:
-            title: '¿En qué te ayudamos?'
-            body: 'Preguntá sobre lo que hacemos, cómo trabajamos o cualquier cosa de este sitio. Las respuestas salen de nuestras propias páginas.'
+            title: '¿En qué te podemos ayudar?'
+            body: 'Preguntá sobre lo que hacemos, cómo trabajamos o cualquier cosa del sitio. Las respuestas salen de nuestras propias páginas.'
+        nudge:
+            text: '¿Dudas? Consultanos acá.'
+            close: 'Descartar'
         input:
             label: 'Tu mensaje'
-            placeholder: 'Escribí tu pregunta'
+            placeholder: 'Escribí tu consulta'
             placeholder_busy: 'Pensando…'
         status:
             thinking: 'Pensando'
@@ -21,33 +25,72 @@ odiseo_sulu_site_assistant:
         pros: 'A favor'
         cons: 'En contra'
         best_for: 'Ideal para'
+        sources: 'De'
         retry: 'Reintentar'
         carousel:
-            prev: 'Anteriores'
+            prev: 'Anterior'
             next: 'Más'
         comparison:
             compared_on: 'Comparado en'
         handoff:
-            summary: 'Lo que entendimos'
-            route:
-                page: 'Contactanos'
-                email: 'Escribinos'
-                booking: 'Agendá una llamada'
+            title: 'Se lo pasamos al equipo'
+            choose: '¿Cómo querés seguir?'
+            reference: 'Referencia'
+            message: '¡Hola! Mi referencia es %reference%.'
+            leave_contact: 'Dejá un email o un teléfono en el chat y el equipo te contacta.'
+            team_open: 'El equipo te va a contactar en horario laboral.'
+            team_closed: 'Ahora estamos cerrados: el equipo te va a contactar el próximo día hábil.'
+            phone: 'Te vamos a llamar al %phone%.'
+            failed: 'No pudimos pasarlo ahora. Podés contactar al equipo acá:'
+            path:
+                visitor_writes: 'Les escribo yo'
+                team_contact: 'Que me contacten'
+            heading:
+                visitor_writes: 'Escribinos con tu referencia'
+                team_contact: 'El equipo te va a contactar'
+            text:
+                visitor_writes: 'El equipo ve tu caso apenas escribís, con la referencia ya en el mensaje.'
     tool:
         search_content: 'Buscando en el sitio…'
         get_content: 'Leyendo la página…'
+        search_knowledge: 'Revisando cómo trabajamos…'
+        request_handoff: 'Pasándoselo al equipo…'
         recall_memories: 'Recordando lo que me contaste…'
-        save_memory: 'Guardando eso para la próxima…'
-        load_skill: 'Cargando…'
+        save_memory: 'Guardándolo para la próxima…'
+        load_skill: 'Pensándolo…'
         presenting: 'Preparando la respuesta…'
     error:
+        closed:
+            text: 'Igual podés contactar al equipo directamente:'
         js:
             connection_lost: 'Se perdió la conexión. Probá de nuevo.'
             unavailable: 'El asistente no está disponible en este momento.'
+            unanswered: 'Esta consulta no se respondió.'
         http:
             too_many_sessions: 'Demasiadas conversaciones desde esta conexión. Probá más tarde.'
             too_many_messages: 'Demasiados mensajes en poco tiempo. Probá de nuevo en un rato.'
             empty_message: 'El mensaje está vacío.'
             not_configured: 'El asistente todavía no está configurado.'
             turn_failed: 'Algo falló de nuestro lado. Probá de nuevo en un momento.'
-            budget_exceeded: 'El asistente llegó a su límite por ahora. Escribinos directamente.'
+            budget_exceeded: 'El asistente llegó a su límite por ahora.'
+            not_found: 'El asistente no está disponible en este momento.'
+        limit:
+            session: 'Esta conversación llegó a su límite.'
+            client: 'Llegaste al límite de hoy.'
+            day: 'El asistente llegó a su límite de hoy.'
+            month: 'El asistente llegó a su límite de este mes.'
+    email:
+        handoff:
+            subject: 'Nuevo caso %reference%: %topic%'
+            title: 'Caso %reference%'
+            intro: 'Un visitante pidió al asistente del sitio que el equipo lo contacte.'
+            reference: 'Referencia'
+            topic: 'Tema'
+            name: 'Nombre'
+            email: 'Email'
+            phone: 'Teléfono'
+            page: 'Página'
+            language: 'Idioma'
+            summary: 'Lo que necesita el visitante'
+            open: 'Abrir el caso en el admin'
+            footer: 'Respondé este email para contestarle al visitante directamente.'

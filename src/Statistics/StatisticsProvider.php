@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Odiseo\SuluSiteAssistantBundle\Statistics;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Odiseo\SuluSiteAssistantBundle\Entity\ConversationInterface;
+use Odiseo\SuluSiteAssistantBundle\Entity\HandoffInterface;
 use Odiseo\SuluSiteAssistantBundle\Entity\SpendEntryInterface;
 
 /**
- * The funnel for a period: conversations started, those that went past one message, handoffs
- * shown and opened, and what the model cost.
+ * Cohort by start date: counts the conversations started in the period (and webspace, if given)
+ * and what came of them. A conversation opened without a message is not counted; the spend of
+ * every one that started in the period is.
  */
 final class StatisticsProvider
 {
@@ -19,76 +22,88 @@ final class StatisticsProvider
     /**
      * @param class-string<ConversationInterface> $conversationClass
      * @param class-string<SpendEntryInterface> $spendEntryClass
+     * @param class-string<HandoffInterface> $handoffClass
      */
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly string $conversationClass,
         private readonly string $spendEntryClass,
+        private readonly string $handoffClass,
     ) {
     }
 
-    /** @return array<string, mixed> */
-    public function provide(int $days): array
+    public function provide(StatisticsPeriod $period, ?string $webspace = null): Statistics
     {
-        $since = (new \DateTimeImmutable('today'))->modify(\sprintf('-%d days', $days - 1));
-
-        $conversations = $this->count($since);
-        $engaged = $this->count($since, 'c.turnCount >= 2');
-        $handoffsShown = $this->count($since, 'c.handoffShownAt IS NOT NULL');
-        $handoffsClicked = $this->count($since, 'c.handoffClickedAt IS NOT NULL');
-        $spend = (float) $this->em->createQueryBuilder()
-            ->select('SUM(s.usd)')
-            ->from($this->spendEntryClass, 's')
-            ->where('s.spentOn >= :since')
-            ->setParameter('since', $since, 'date_immutable')
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return [
-            'days' => $days,
-            'since' => $since->format('Y-m-d'),
-            'conversations' => $conversations,
-            'engaged' => $engaged,
-            'handoffsShown' => $handoffsShown,
-            'handoffsClicked' => $handoffsClicked,
-            'handoffRate' => $conversations > 0 ? \round($handoffsShown / $conversations, 3) : 0.0,
-            'spendUsd' => \round($spend, 2),
-            'costPerConversation' => $conversations > 0 ? \round($spend / $conversations, 3) : 0.0,
-            'topPages' => $this->topPages($since),
-        ];
-    }
-
-    private function count(\DateTimeImmutable $since, ?string $condition = null): int
-    {
-        $query = $this->em->createQueryBuilder()
-            ->select('COUNT(c.id)')
-            ->from($this->conversationClass, 'c')
-            ->where('c.createdAt >= :since')
+        /** @var array{conversations: int|string, engaged: int|string|null, opened: int|string|null} $counts */
+        $counts = $this->started($this->em->createQueryBuilder()
+            ->select('COUNT(c.id) AS conversations')
+            ->addSelect('SUM(CASE WHEN c.turnCount >= 2 THEN 1 ELSE 0 END) AS engaged')
+            ->addSelect('SUM(CASE WHEN c.contactOpenedAt IS NOT NULL THEN 1 ELSE 0 END) AS opened')
+            ->from($this->conversationClass, 'c'), $period, $webspace)
             ->andWhere('c.turnCount > 0')
-            ->setParameter('since', $since, 'datetime_immutable');
-        if (null !== $condition) {
-            $query->andWhere($condition);
+            ->getQuery()
+            ->getSingleResult();
+
+        $spend = $this->em->createQueryBuilder()
+            ->select('SUM(e.usd)')
+            ->from($this->spendEntryClass, 'e')
+            ->where(\sprintf('e.sessionId IN (%s)', $this->em->createQueryBuilder()
+                ->select('s.sessionId')
+                ->from($this->conversationClass, 's')
+                ->where('s.createdAt >= :from AND s.createdAt < :to')
+                ->andWhere(null === $webspace ? '1 = 1' : 's.webspaceKey = :webspace')
+                ->getDQL()))
+            ->setParameter('from', $period->from)
+            ->setParameter('to', $period->end());
+        if (null !== $webspace) {
+            $spend->setParameter('webspace', $webspace);
         }
 
-        return (int) $query->getQuery()->getSingleScalarResult();
-    }
+        $topics = $this->em->createQueryBuilder()
+            ->select('h.topic AS topic', 'COUNT(h.id) AS total')
+            ->from($this->handoffClass, 'h')
+            ->where('h.createdAt >= :from AND h.createdAt < :to')
+            ->groupBy('h.topic')
+            ->orderBy('total', 'DESC')
+            ->setParameter('from', $period->from)
+            ->setParameter('to', $period->end());
+        if (null !== $webspace) {
+            $topics->andWhere('h.webspaceKey = :webspace')->setParameter('webspace', $webspace);
+        }
+        /** @var list<array{topic: string, total: int|string}> $topicRows */
+        $topicRows = $topics->getQuery()->getArrayResult();
 
-    /** @return list<array{page: string, conversations: int}> */
-    private function topPages(\DateTimeImmutable $since): array
-    {
-        /** @var list<array{page: string, conversations: int|string}> $rows */
-        $rows = $this->em->createQueryBuilder()
+        /** @var list<array{page: string, conversations: int|string}> $pages */
+        $pages = $this->started($this->em->createQueryBuilder()
             ->select('c.lastPage AS page', 'COUNT(c.id) AS conversations')
-            ->from($this->conversationClass, 'c')
-            ->where('c.createdAt >= :since')
+            ->from($this->conversationClass, 'c'), $period, $webspace)
             ->andWhere('c.lastPage IS NOT NULL')
             ->groupBy('c.lastPage')
             ->orderBy('conversations', 'DESC')
             ->setMaxResults(self::TOP_PAGES)
-            ->setParameter('since', $since, 'datetime_immutable')
             ->getQuery()
             ->getArrayResult();
 
-        return \array_map(static fn (array $row): array => ['page' => $row['page'], 'conversations' => (int) $row['conversations']], $rows);
+        return new Statistics(
+            (int) $counts['conversations'],
+            (int) $counts['engaged'],
+            (int) $counts['opened'],
+            (float) $spend->getQuery()->getSingleScalarResult(),
+            \array_map(intval(...), \array_column($topicRows, 'total', 'topic')),
+            \array_map(static fn (array $row): array => ['page' => $row['page'], 'conversations' => (int) $row['conversations']], $pages),
+        );
+    }
+
+    /** Restricts conversations `c` to the period and webspace. */
+    private function started(QueryBuilder $query, StatisticsPeriod $period, ?string $webspace): QueryBuilder
+    {
+        $query->andWhere('c.createdAt >= :from AND c.createdAt < :to')
+            ->setParameter('from', $period->from)
+            ->setParameter('to', $period->end());
+        if (null !== $webspace) {
+            $query->andWhere('c.webspaceKey = :webspace')->setParameter('webspace', $webspace);
+        }
+
+        return $query;
     }
 }

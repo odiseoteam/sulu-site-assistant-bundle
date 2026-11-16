@@ -1,0 +1,285 @@
+<?xml version="1.0" ?>
+<!-- One webspace's settings. An empty field keeps the configuration's value; the texts are kept
+     per locale. The models offered match Settings\ModelChoices. -->
+<form xmlns="http://schemas.sulu.io/template/template"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://schemas.sulu.io/template/template http://schemas.sulu.io/template/form-1.0.xsd"
+>
+    <key>site_assistant_settings</key>
+
+    <properties>
+        <section name="general">
+            <meta>
+                <title>odiseo_site_assistant.section.general</title>
+            </meta>
+            <properties>
+            <property name="enabled" type="checkbox">
+                <meta>
+                    <title>odiseo_site_assistant.enabled</title>
+                <info_text>odiseo_site_assistant.enabled_info</info_text>
+                </meta>
+            <params>
+                <param name="label">
+                    <meta>
+                        <title>odiseo_site_assistant.enabled_label</title>
+                    </meta>
+                </param>
+                <param name="type" value="toggler"/>
+                <param name="default_value" value="true"/>
+            </params>
+            </property>
+            </properties>
+        </section>
+
+        <section name="identity">
+            <meta>
+                <title>odiseo_site_assistant.section.identity</title>
+            </meta>
+            <properties>
+            <property name="assistantName" type="text_line" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.assistant_name</title>
+                <info_text>odiseo_site_assistant.assistant_name_info</info_text>
+                </meta>
+            </property>
+            <property name="brandName" type="text_line" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.brand_name</title>
+                <info_text>odiseo_site_assistant.brand_name_info</info_text>
+                </meta>
+            </property>
+            <property name="brandVoice" type="text_area">
+                <meta>
+                    <title>odiseo_site_assistant.brand_voice</title>
+                <info_text>odiseo_site_assistant.brand_voice_info</info_text>
+                </meta>
+            </property>
+            </properties>
+        </section>
+
+        <section name="texts">
+            <meta>
+                <title>odiseo_site_assistant.section.texts</title>
+            </meta>
+            <properties>
+            <property name="welcomeTitle" type="text_line" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.welcome_title</title>
+                <info_text>odiseo_site_assistant.localized_info</info_text>
+                </meta>
+            </property>
+            <property name="welcomeBody" type="text_area">
+                <meta>
+                    <title>odiseo_site_assistant.welcome_body</title>
+                <info_text>odiseo_site_assistant.localized_info</info_text>
+                </meta>
+            </property>
+            <property name="starterChips" type="text_area">
+                <meta>
+                    <title>odiseo_site_assistant.starter_chips</title>
+                <info_text>odiseo_site_assistant.starter_chips_info</info_text>
+                </meta>
+            </property>
+            </properties>
+        </section>
+
+        <section name="models">
+            <meta>
+                <title>odiseo_site_assistant.section.models</title>
+            </meta>
+            <properties>
+            <property name="turnModel" type="single_select" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.turn_model</title>
+                <info_text>odiseo_site_assistant.turn_model_info</info_text>
+                </meta>
+            <params>
+                <param name="values" type="collection">
+                    <param name="claude-haiku-5-5" value="claude-haiku-5-5">
+                        <meta>
+                            <title>Claude Haiku 5.5 (Anthropic)</title>
+                        </meta>
+                    </param>
+                    <param name="claude-sonnet-5" value="claude-sonnet-5">
+                        <meta>
+                            <title>Claude Sonnet 5 (Anthropic)</title>
+                        </meta>
+                    </param>
+                    <param name="claude-sonnet-5-5" value="claude-sonnet-5-5">
+                        <meta>
+                            <title>Claude Sonnet 5.5 (Anthropic)</title>
+                        </meta>
+                    </param>
+                    <param name="gpt-5.6-luna" value="gpt-5.6-luna">
+                        <meta>
+                            <title>OpenAI Luna (OpenAI)</title>
+                        </meta>
+                    </param>
+                </param>
+            </params>
+            </property>
+            <property name="turnEffort" type="single_select" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.turn_effort</title>
+                <info_text>odiseo_site_assistant.turn_effort_info</info_text>
+                </meta>
+            <params>
+                <param name="values" type="collection">
+                    <param name="low" value="low">
+                        <meta>
+                            <title>odiseo_site_assistant.effort.low</title>
+                        </meta>
+                    </param>
+                    <param name="medium" value="medium">
+                        <meta>
+                            <title>odiseo_site_assistant.effort.medium</title>
+                        </meta>
+                    </param>
+                    <param name="high" value="high">
+                        <meta>
+                            <title>odiseo_site_assistant.effort.high</title>
+                        </meta>
+                    </param>
+                </param>
+            </params>
+            </property>
+            <property name="memoryModel" type="single_select" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.memory_model</title>
+                <info_text>odiseo_site_assistant.memory_model_info</info_text>
+                </meta>
+            <params>
+                <param name="values" type="collection">
+                    <param name="claude-haiku-5-5" value="claude-haiku-5-5">
+                        <meta>
+                            <title>Claude Haiku 5.5 (Anthropic)</title>
+                        </meta>
+                    </param>
+                    <param name="claude-sonnet-5" value="claude-sonnet-5">
+                        <meta>
+                            <title>Claude Sonnet 5 (Anthropic)</title>
+                        </meta>
+                    </param>
+                    <param name="claude-sonnet-5-5" value="claude-sonnet-5-5">
+                        <meta>
+                            <title>Claude Sonnet 5.5 (Anthropic)</title>
+                        </meta>
+                    </param>
+                    <param name="gpt-5.6-luna" value="gpt-5.6-luna">
+                        <meta>
+                            <title>OpenAI Luna (OpenAI)</title>
+                        </meta>
+                    </param>
+                </param>
+            </params>
+            </property>
+            </properties>
+        </section>
+
+        <section name="keys">
+            <meta>
+                <title>odiseo_site_assistant.section.keys</title>
+            </meta>
+            <properties>
+            <property name="anthropicApiKey" type="text_line" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.anthropic_api_key</title>
+                <info_text>odiseo_site_assistant.api_key_info</info_text>
+                </meta>
+            </property>
+            <property name="anthropicApiKeyStored" type="text_line" colspan="3" disabledCondition="true">
+                <meta>
+                    <title>odiseo_site_assistant.api_key_stored</title>
+                </meta>
+            </property>
+            <property name="anthropicApiKeyClear" type="checkbox" colspan="3">
+                <meta>
+                    <title>odiseo_site_assistant.api_key_clear</title>
+                </meta>
+            <params>
+                <param name="type" value="toggler"/>
+            </params>
+            </property>
+            <property name="openaiApiKey" type="text_line" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.openai_api_key</title>
+                <info_text>odiseo_site_assistant.api_key_info</info_text>
+                </meta>
+            </property>
+            <property name="openaiApiKeyStored" type="text_line" colspan="3" disabledCondition="true">
+                <meta>
+                    <title>odiseo_site_assistant.api_key_stored</title>
+                </meta>
+            </property>
+            <property name="openaiApiKeyClear" type="checkbox" colspan="3">
+                <meta>
+                    <title>odiseo_site_assistant.api_key_clear</title>
+                </meta>
+            <params>
+                <param name="type" value="toggler"/>
+            </params>
+            </property>
+            </properties>
+        </section>
+
+        <section name="budgets">
+            <meta>
+                <title>odiseo_site_assistant.section.budgets</title>
+            </meta>
+            <properties>
+            <property name="sessionBudgetUsd" type="number" colspan="4">
+                <meta>
+                    <title>odiseo_site_assistant.session_budget</title>
+                <info_text>odiseo_site_assistant.session_budget_info</info_text>
+                </meta>
+            </property>
+            <property name="dailyBudgetUsd" type="number" colspan="4">
+                <meta>
+                    <title>odiseo_site_assistant.daily_budget</title>
+                <info_text>odiseo_site_assistant.daily_budget_info</info_text>
+                </meta>
+            </property>
+            <property name="monthlyBudgetUsd" type="number" colspan="4">
+                <meta>
+                    <title>odiseo_site_assistant.monthly_budget</title>
+                <info_text>odiseo_site_assistant.monthly_budget_info</info_text>
+                </meta>
+            </property>
+            </properties>
+        </section>
+
+        <section name="memory">
+            <meta>
+                <title>odiseo_site_assistant.section.memory</title>
+            </meta>
+            <properties>
+            <property name="memoryEnabled" type="single_select" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.memory_enabled</title>
+                <info_text>odiseo_site_assistant.memory_enabled_info</info_text>
+                </meta>
+            <params>
+                <param name="values" type="collection">
+                    <param name="on" value="on">
+                        <meta>
+                            <title>odiseo_site_assistant.memory.on</title>
+                        </meta>
+                    </param>
+                    <param name="off" value="off">
+                        <meta>
+                            <title>odiseo_site_assistant.memory.off</title>
+                        </meta>
+                    </param>
+                </param>
+            </params>
+            </property>
+            <property name="memoryRetentionDays" type="number" colspan="6">
+                <meta>
+                    <title>odiseo_site_assistant.memory_retention</title>
+                <info_text>odiseo_site_assistant.memory_retention_info</info_text>
+                </meta>
+            </property>
+            </properties>
+        </section>
+    </properties>
+</form>

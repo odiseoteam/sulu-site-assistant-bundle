@@ -8,10 +8,29 @@
     font-weight: 400;
 }
 
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
 .periods {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 24px;
+}
+
+.webspace {
+    min-width: 220px;
+}
+
+.range {
+    margin: 0 0 24px;
+    font-size: 12px;
+    color: #777;
 }
 
 .period,
@@ -55,13 +74,19 @@
     color: #777;
 }
 
+.rate {
+    font-size: 12px;
+    color: #52b6ca;
+    font-weight: 700;
+}
+
 .heading {
     margin: 32px 0 12px;
     font-size: 16px;
     font-weight: 700;
 }
 
-.pages {
+.table {
     width: 100%;
     max-width: 600px;
     border-collapse: collapse;

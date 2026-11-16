@@ -153,7 +153,11 @@ final class TemplateTextExtractor
     {
         if (!isset($this->forms[$formKey][$locale])) {
             $metadata = $this->formMetadataProvider->getMetadata($formKey, $locale, []);
-            $this->forms[$formKey][$locale] = $metadata instanceof TypedFormMetadata ? $metadata->getForms() : [];
+            $forms = [];
+            foreach ($metadata instanceof TypedFormMetadata ? $metadata->getForms() : [] as $key => $form) {
+                $forms[(string) $key] = $form;
+            }
+            $this->forms[$formKey][$locale] = $forms;
         }
 
         return $this->forms[$formKey][$locale];

@@ -4,5 +4,5 @@
                   xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
                                       http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
 
-    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\MemoryFact" table="sa_memory_fact" />
+    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\MemoryFact" table="odiseo_site_assistant_memory_fact" />
 </doctrine-mapping>

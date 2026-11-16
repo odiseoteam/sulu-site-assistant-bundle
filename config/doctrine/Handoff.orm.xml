@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<doctrine-mapping xmlns="http://doctrine-project.org/schemas/orm/doctrine-mapping"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xsi:schemaLocation="http://doctrine-project.org/schemas/orm/doctrine-mapping
+                                      http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd">
+
+    <mapped-superclass name="Odiseo\SuluSiteAssistantBundle\Entity\Handoff" table="odiseo_site_assistant_handoff">
+        <indexes>
+            <index name="idx_odiseo_site_assistant_handoff_state" columns="state" />
+            <index name="idx_odiseo_site_assistant_handoff_topic" columns="topic" />
+            <index name="idx_odiseo_site_assistant_handoff_created" columns="created_at" />
+        </indexes>
+
+        <unique-constraints>
+            <unique-constraint name="uniq_odiseo_site_assistant_handoff_reference" columns="reference" />
+        </unique-constraints>
+
+        <id name="id" column="id" type="integer">
+            <generator strategy="AUTO" />
+        </id>
+
+        <!-- SET NULL: a case outlives its conversation and keeps its summary. -->
+        <many-to-one field="conversation" target-entity="Odiseo\SuluSiteAssistantBundle\Entity\ConversationInterface">
+            <join-column name="conversation_id" referenced-column-name="id" nullable="true" on-delete="SET NULL" />
+        </many-to-one>
+
+        <field name="webspaceKey" column="webspace_key" type="string" length="64" nullable="true" />
+        <field name="locale" column="locale" type="string" length="16" nullable="true" />
+        <field name="reference" type="string" length="32" />
+        <field name="topic" type="string" length="64" />
+        <field name="category" type="string" length="32" />
+        <field name="summary" type="text" />
+        <field name="contactName" column="contact_name" type="string" length="255" nullable="true" />
+        <field name="contactEmail" column="contact_email" type="string" length="255" nullable="true" />
+        <field name="contactPhone" column="contact_phone" type="string" length="32" nullable="true" />
+        <field name="path" type="string" length="64" nullable="true" />
+        <field name="page" type="string" length="255" nullable="true" />
+        <field name="state" type="string" length="16" />
+        <field name="notifiedAt" column="notified_at" type="datetime_immutable" nullable="true" />
+        <field name="createdAt" column="created_at" type="datetime_immutable" />
+        <field name="updatedAt" column="updated_at" type="datetime_immutable" nullable="true" />
+    </mapped-superclass>
+</doctrine-mapping>

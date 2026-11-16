@@ -1,6 +1,6 @@
 {
     "name": "odiseoteam/sulu-site-assistant-bundle",
-    "description": "Site assistant for Sulu: a conversational agent over the website's pages and articles that hands visitors to a person, built on odiseoteam/ai-conversational-agent-bundle.",
+    "description": "Site assistant for Sulu: a conversational agent over the website's pages, articles and knowledge that hands visitors to a person, built on odiseoteam/ai-conversational-agent-bundle.",
     "type": "symfony-bundle",
     "keywords": [
         "sulu",
@@ -8,20 +8,69 @@
         "ai",
         "agent",
         "chatbot",
-        "site-assistant"
+        "site-assistant",
+        "claude"
     ],
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Odiseo",
+            "homepage": "https://odiseo.io"
+        }
+    ],
     "require": {
         "php": "^8.2",
+        "ext-sodium": "*",
         "cmsig/seal": "^0.12",
+        "doctrine/dbal": "^4.2",
+        "doctrine/doctrine-bundle": "^2.13",
         "doctrine/orm": "^3.3",
-        "odiseoteam/ai-conversational-agent-bundle": "^0.2@dev",
+        "odiseoteam/ai-conversational-agent-bundle": "^0.5",
+        "psr/cache": "^3.0",
+        "psr/log": "^3.0",
         "sulu/sulu": "^3.0",
-        "symfony/rate-limiter": "^7.3"
+        "symfony/config": "^7.3",
+        "symfony/console": "^7.3",
+        "symfony/dependency-injection": "^7.3",
+        "symfony/event-dispatcher-contracts": "^3.0",
+        "symfony/http-foundation": "^7.3",
+        "symfony/http-kernel": "^7.3",
+        "symfony/mailer": "^7.3",
+        "symfony/messenger": "^7.3",
+        "symfony/mime": "^7.3",
+        "symfony/rate-limiter": "^7.3",
+        "symfony/service-contracts": "^3.0",
+        "symfony/translation-contracts": "^3.0",
+        "symfony/twig-bridge": "^7.3",
+        "twig/twig": "^3.10"
     },
     "require-dev": {
+        "cmsig/seal-memory-adapter": "^0.12",
+        "dama/doctrine-test-bundle": "^8.2",
+        "deptrac/deptrac": "^3.0",
+        "doctrine/doctrine-migrations-bundle": "^3.3",
+        "friendsofphp/php-cs-fixer": "^3.68",
+        "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.1",
-        "phpunit/phpunit": "^11.5"
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
+        "phpunit/phpunit": "^11.5",
+        "shipmonk/composer-dependency-analyser": "^1.8",
+        "symfony/ai-anthropic-platform": "^0.13",
+        "symfony/ai-bundle": "^0.13",
+        "symfony/ai-open-ai-platform": "^0.13",
+        "symfony/browser-kit": "^7.3",
+        "symfony/css-selector": "^7.3",
+        "symfony/dotenv": "^7.3",
+        "symfony/http-client": "^7.3",
+        "symfony/monolog-bundle": "^3.10 || ^4.0",
+        "symfony/phpunit-bridge": "^7.3"
+    },
+    "suggest": {
+        "symfony/ai-anthropic-platform": "Run the assistant on Claude",
+        "symfony/ai-open-ai-platform": "Run the assistant on OpenAI's models",
+        "doctrine/doctrine-migrations-bundle": "Create the assistant's tables with the shipped migrations"
     },
     "autoload": {
         "psr-4": {
@@ -34,13 +83,26 @@
         }
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "phpstan/extension-installer": true,
+            "symfony/flex": false,
+            "symfony/runtime": false
+        },
+        "platform": {
+            "php": "8.2.99"
+        }
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "0.1-dev"
+            "dev-master": "0.2-dev"
         }
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse",
+        "cs": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix"
+    }
 }

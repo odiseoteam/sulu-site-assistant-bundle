@@ -4,27 +4,32 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Visitor;
 
-use Odiseo\AiConversationalAgentBundle\Host\PrincipalResolver;
-use Odiseo\SuluSiteAssistantBundle\Site\SiteLocales;
+use Odiseo\AiConversationalAgentBundle\Host\PrincipalResolverInterface;
+use Odiseo\SuluSiteAssistantBundle\Site\CurrentWebspace;
+use Odiseo\SuluSiteAssistantBundle\Site\Webspaces;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Who is chatting and in which language. A website has no sign-in, so the visitor is a random
  * token in a signed cookie scoped to the agent's routes: no PHP session, so pages stay
- * cacheable and any container can serve /agent/*. VisitorCookieListener sets a new one.
+ * cacheable and any worker can serve /agent/*. VisitorCookieListener sends a new one.
  */
-final class VisitorContext implements PrincipalResolver
+final class VisitorContext implements PrincipalResolverInterface
 {
     public const COOKIE = 'sa_visitor';
+
     public const LOCALE_HEADER = 'X-Agent-Locale';
+
     public const NEW_TOKEN_ATTRIBUTE = '_sa_visitor_token';
 
     private const CONSOLE_PRINCIPAL = 'visitor-console';
 
     public function __construct(
         private readonly RequestStack $requestStack,
-        private readonly SiteLocales $site,
+        private readonly Webspaces $webspaces,
+        private readonly CurrentWebspace $webspace,
+        #[\SensitiveParameter]
         private readonly string $secret,
     ) {
     }
@@ -44,13 +49,18 @@ final class VisitorContext implements PrincipalResolver
         return true;
     }
 
+    public function webspace(): ?string
+    {
+        return $this->webspace->key();
+    }
+
     /** The locale the widget reports for its page, if the webspace has it. */
     public function locale(): string
     {
-        $request = $this->requestStack->getMainRequest();
-        $asked = $request?->headers->get(self::LOCALE_HEADER);
+        $webspace = $this->webspace->key();
+        $asked = $this->requestStack->getMainRequest()?->headers->get(self::LOCALE_HEADER);
 
-        return \is_string($asked) && \in_array($asked, $this->site->locales(), true) ? $asked : $this->site->defaultLocale();
+        return \is_string($asked) && \in_array($asked, $this->webspaces->locales($webspace), true) ? $asked : $this->webspaces->defaultLocale($webspace);
     }
 
     public function sign(string $token): string

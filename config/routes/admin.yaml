@@ -25,8 +25,119 @@ odiseo_sulu_site_assistant.delete_conversations:
     methods: [DELETE]
     controller: odiseo_sulu_site_assistant.admin.conversation_controller::cdeleteAction
 
+odiseo_sulu_site_assistant.get_handoffs:
+    path: /site-assistant/handoffs.{_format}
+    format: json
+    methods: [GET]
+    controller: odiseo_sulu_site_assistant.admin.handoff_controller::cgetAction
+
+odiseo_sulu_site_assistant.get_handoff:
+    path: /site-assistant/handoffs/{id}.{_format}
+    format: json
+    methods: [GET]
+    requirements: { id: '\d+' }
+    controller: odiseo_sulu_site_assistant.admin.handoff_controller::getAction
+
+odiseo_sulu_site_assistant.put_handoff:
+    path: /site-assistant/handoffs/{id}.{_format}
+    format: json
+    methods: [PUT]
+    requirements: { id: '\d+' }
+    controller: odiseo_sulu_site_assistant.admin.handoff_controller::putAction
+
 odiseo_sulu_site_assistant.get_statistics:
     path: /site-assistant/statistics.{_format}
     format: json
     methods: [GET]
     controller: odiseo_sulu_site_assistant.admin.statistics_controller::getAction
+
+odiseo_sulu_site_assistant.get_settings_list:
+    path: /site-assistant/settings.{_format}
+    format: json
+    methods: [GET]
+    controller: odiseo_sulu_site_assistant.admin.settings_controller::cgetAction
+
+odiseo_sulu_site_assistant.get_settings:
+    path: /site-assistant/settings/{id}.{_format}
+    format: json
+    methods: [GET]
+    controller: odiseo_sulu_site_assistant.admin.settings_controller::getAction
+
+odiseo_sulu_site_assistant.put_settings:
+    path: /site-assistant/settings/{id}.{_format}
+    format: json
+    methods: [PUT]
+    controller: odiseo_sulu_site_assistant.admin.settings_controller::putAction
+
+# Rules and knowledge documents share one controller: `section` is rules or documents.
+odiseo_sulu_site_assistant.get_rules:
+    path: /site-assistant/rules.{_format}
+    format: json
+    methods: [GET]
+    defaults: { section: rules }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::cgetAction
+
+odiseo_sulu_site_assistant.get_rule:
+    path: /site-assistant/rules/{id}.{_format}
+    format: json
+    methods: [GET]
+    defaults: { section: rules }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::getAction
+
+odiseo_sulu_site_assistant.post_rule:
+    path: /site-assistant/rules.{_format}
+    format: json
+    methods: [POST]
+    defaults: { section: rules }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::postAction
+
+odiseo_sulu_site_assistant.put_rule:
+    path: /site-assistant/rules/{id}.{_format}
+    format: json
+    methods: [PUT]
+    defaults: { section: rules }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::putAction
+
+odiseo_sulu_site_assistant.get_rule_version:
+    path: /site-assistant/rules/{id}/versions/{number}.{_format}
+    format: json
+    methods: [GET]
+    defaults: { section: rules }
+    requirements: { number: '\d+' }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::versionAction
+
+odiseo_sulu_site_assistant.get_documents:
+    path: /site-assistant/documents.{_format}
+    format: json
+    methods: [GET]
+    defaults: { section: documents }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::cgetAction
+
+odiseo_sulu_site_assistant.get_document:
+    path: /site-assistant/documents/{id}.{_format}
+    format: json
+    methods: [GET]
+    defaults: { section: documents }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::getAction
+
+odiseo_sulu_site_assistant.post_document:
+    path: /site-assistant/documents.{_format}
+    format: json
+    methods: [POST]
+    defaults: { section: documents }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::postAction
+
+odiseo_sulu_site_assistant.put_document:
+    path: /site-assistant/documents/{id}.{_format}
+    format: json
+    methods: [PUT]
+    defaults: { section: documents }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::putAction
+
+odiseo_sulu_site_assistant.get_document_version:
+    path: /site-assistant/documents/{id}/versions/{number}.{_format}
+    format: json
+    methods: [GET]
+    defaults: { section: documents }
+    requirements: { number: '\d+' }
+    controller: odiseo_sulu_site_assistant.admin.editable_controller::versionAction

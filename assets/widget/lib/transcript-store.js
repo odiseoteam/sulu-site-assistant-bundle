@@ -4,6 +4,7 @@
 const TRANSCRIPT_KEY = 'site_assistant.transcript';
 const OPEN_KEY = 'site_assistant.open';
 const WIDE_KEY = 'site_assistant.wide';
+const NUDGE_KEY = 'site_assistant.nudge_dismissed';
 const MAX_ITEMS = 40;
 
 export function loadTranscript(sessionId) {
@@ -60,5 +61,22 @@ export function rememberPanelWide(wide) {
     localStorage.setItem(WIDE_KEY, wide ? '1' : '0');
   } catch {
     // Same as above.
+  }
+}
+
+// Per visit: sessionStorage ends with the tab.
+export function wasNudgeDismissed() {
+  try {
+    return sessionStorage.getItem(NUDGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function rememberNudgeDismissed() {
+  try {
+    sessionStorage.setItem(NUDGE_KEY, '1');
+  } catch {
+    // Without storage it shows again on the next page.
   }
 }

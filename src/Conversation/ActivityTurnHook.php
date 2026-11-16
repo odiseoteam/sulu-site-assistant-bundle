@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Odiseo\SuluSiteAssistantBundle\Conversation;
 
-use Odiseo\AiConversationalAgentBundle\Host\TurnHook;
+use Odiseo\AiConversationalAgentBundle\Host\TurnHookInterface;
 use Odiseo\AiConversationalAgentBundle\Session\SessionContext;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /** Counts the turn and keeps the first message and the current page before the turn streams. */
-final class ActivityTurnHook implements TurnHook
+final class ActivityTurnHook implements TurnHookInterface
 {
     public function __construct(
         private readonly ConversationActivity $activity,
@@ -22,7 +22,15 @@ final class ActivityTurnHook implements TurnHook
         $message = '';
         $request = $this->requestStack->getMainRequest();
         if (null !== $request && 'json' === $request->getContentTypeFormat()) {
-            $body = $request->toArray();
+            try {
+                $body = $request->toArray();
+            } catch (\Throwable) {
+                $body = [];
+            }
+            // A retry answers the same message again: it is not another turn.
+            if (true === ($body['retry'] ?? false)) {
+                return;
+            }
             $message = \is_string($body['message'] ?? null) ? $body['message'] : '';
         }
 

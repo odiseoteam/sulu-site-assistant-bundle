@@ -19,6 +19,7 @@ use Odiseo\SuluSiteAssistantBundle\Site\MediaUrlResolver;
 final class ContentRecords
 {
     public const KIND = 'content';
+
     public const RESOLVE_HINT = 'find it with search_content or read it with get_content first';
 
     public function __construct(private readonly MediaUrlResolver $media)

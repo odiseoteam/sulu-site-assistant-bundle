@@ -58,7 +58,7 @@ final readonly class ContentDocument
     /** @param array<string, mixed> $document */
     public static function fromDocument(array $document): self
     {
-        $sections = $document['sections']['items'] ?? [];
+        $sections = \is_array($document['sections'] ?? null) ? ($document['sections']['items'] ?? []) : [];
         $webspaces = $document['webspaces'] ?? [];
         $mediaId = $document['mediaId'] ?? null;
         $authoredAt = $document['authoredAt'] ?? null;
